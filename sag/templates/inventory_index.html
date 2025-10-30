@@ -4,21 +4,72 @@
 {% block title %}Inventory - Saud Aluminium and Glass{% endblock %}
 
 {% block content %}
-<!-- Page Header -->
-<section class="page-header">
-    <div class="container">
-        <h1>Inventory Management</h1>
-        <!-- <p>Get in Touch for Your Next Project</p> -->
-        <!-- <h1 style="font-family: sans-serif;">Inventory Dashboard</h1>
-        <p style="font-family: sans-serif;">Use the links below to manage your inventory data.</p> -->
-        <ul style="font-family: sans-serif;">
-            <li><a href="add_supplier/">Manage Suppliers</a></li>
-            <li><a href="add_warehouse/">Manage Warehouses</a></li>
-            <li><a href="add_raw_material/">Manage Raw Materials</a></li>
-            <li><a href="add_inventory_batch/">Manage Inventory Batches</a></li>
-            <li><a href="stock_movement/">Record Stock Movements</a></li>
-        </ul>
-    </div>
+<section class="page-header py-5 bg-light border-bottom shadow-sm">
+  <div class="container text-center">
+    <h1 class="fw-bold mb-3">Inventory Management</h1>
+    <p class="text-muted mb-4">Easily manage your suppliers, warehouses, materials, and stock movement records.</p>
+  </div>
 </section>
+
+<section class="container my-5">
+  <div class="row justify-content-center g-4">
+
+    <div class="col-md-4">
+      <a href="{% url 'add_supplier' %}" class="text-decoration-none">
+        <div class="card shadow-sm text-center p-4 h-100 hover-card">
+          <i class="fas fa-truck fa-2x text-primary mb-3"></i>
+          <h5 class="fw-bold">Manage Suppliers</h5>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4">
+      <a href="{% url 'add_warehouse' %}" class="text-decoration-none">
+        <div class="card shadow-sm text-center p-4 h-100 hover-card">
+          <i class="fas fa-warehouse fa-2x text-success mb-3"></i>
+          <h5 class="fw-bold">Manage Warehouses</h5>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4">
+      <a href="{% url 'add_raw_material' %}" class="text-decoration-none">
+        <div class="card shadow-sm text-center p-4 h-100 hover-card">
+          <i class="fas fa-cubes fa-2x text-warning mb-3"></i>
+          <h5 class="fw-bold">Manage Raw Materials</h5>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4">
+      <a href="{% url 'add_inventory_batch' %}" class="text-decoration-none">
+        <div class="card shadow-sm text-center p-4 h-100 hover-card">
+          <i class="fas fa-boxes-stacked fa-2x text-info mb-3"></i>
+          <h5 class="fw-bold">Manage Inventory Batches</h5>
+        </div>
+      </a>
+    </div>
+
+    <div class="col-md-4">
+      <a href="{% url 'stock_movement' %}" class="text-decoration-none">
+        <div class="card shadow-sm text-center p-4 h-100 hover-card">
+          <i class="fas fa-exchange-alt fa-2x text-danger mb-3"></i>
+          <h5 class="fw-bold">Record Stock Movements</h5>
+        </div>
+      </a>
+    </div>
+
+  </div>
+</section>
+
+<style>
+  .hover-card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .hover-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+  }
+</style>
 
 {% endblock %}
