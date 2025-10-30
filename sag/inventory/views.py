@@ -89,37 +89,20 @@ def add_raw_material(request):
     context={'form':form}
     return render(request,'add_raw_material.html',context)
 
-def batch_create(request):
+def add_inventory_batch(request):
     form = InventoryBatchForm(request.POST or None)
     if form.is_valid():
-        # NOTE: A real system would use a signal or transaction here to update RawMaterial.current_stock
         form.save()
-        return redirect('batch_list')
-    html = f"""
-        <h1 style="font-family: sans-serif;">Record New Inventory Batch</h1>
-        <form method="post" style="font-family: sans-serif;">
-            <input type="hidden" name="csrfmiddlewaretoken" value="dummytoken">
-            {form.as_p()}
-            <button type="submit" style="padding: 10px; cursor: pointer;">Save Batch</button>
-        </form>
-        <p><a href="../">Back to List</a></p>
-    """
-    return HttpResponse(html)
+        return redirect('add_inventory_batch')
+    context={'form':form}
+    return render(request,'inventory_batch.html',context)
 
-def movement_create(request):
+def stock_movement(request):
     form = StockMovementForm(request.POST or None)
     if form.is_valid():
         # NOTE: A real system would use a signal or transaction here to update 
         # InventoryBatch.qty_available and RawMaterial.current_stock
         form.save()
-        return redirect('movement_list')
-    html = f"""
-        <h1 style="font-family: sans-serif;">Record New Stock Movement</h1>
-        <form method="post" style="font-family: sans-serif;">
-            <input type="hidden" name="csrfmiddlewaretoken" value="dummytoken">
-            {form.as_p()}
-            <button type="submit" style="padding: 10px; cursor: pointer;">Save Movement</button>
-        </form>
-        <p><a href="../">Back to List</a></p>
-    """
-    return HttpResponse(html)
+        return redirect('stock_movement')
+    context={'form':form}
+    return render(request,'stock_movement.html',context)

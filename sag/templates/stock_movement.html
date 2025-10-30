@@ -1,0 +1,19 @@
+{% extends "management_base.html" %}  
+{% load static %}
+
+{% block title %} Stock Movement {% endblock %}
+
+{% block content %}
+    <h1 style="font-family: sans-serif;">Record New Stock Movement</h1>
+    
+    <form method="post" style="font-family: sans-serif;">
+
+        {% csrf_token %} 
+
+        {{ form.as_p }} 
+        
+        <button type="submit" style="padding: 10px; cursor: pointer;">Save</button>
+    </form>
+    
+    <p><a href="../">Back</a></p>
+{% endblock %}
