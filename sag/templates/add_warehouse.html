@@ -1,0 +1,20 @@
+{% extends "management_base.html" %}  
+{% load static %}
+
+{% block title %} Add Warehouse {% endblock %}
+
+{% block content %}
+    <h1 style="font-family: sans-serif;">Add Warehouse</h1>
+    
+    <form method="post" style="font-family: sans-serif;">
+
+        {% csrf_token %} 
+        
+        {# Renders the form passed from the view #}
+        {{ form.as_p }} 
+        
+        <button type="submit" style="padding: 10px; cursor: pointer;">Save Warehouse</button>
+    </form>
+    
+    <p><a href="../">Back</a></p>
+{% endblock %}

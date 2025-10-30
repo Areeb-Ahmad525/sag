@@ -1,0 +1,24 @@
+{% extends 'management_base.html' %}
+{% load static %}
+
+{% block title %}Inventory - Saud Aluminium and Glass{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>Inventory Management</h1>
+        <!-- <p>Get in Touch for Your Next Project</p> -->
+        <!-- <h1 style="font-family: sans-serif;">Inventory Dashboard</h1>
+        <p style="font-family: sans-serif;">Use the links below to manage your inventory data.</p> -->
+        <ul style="font-family: sans-serif;">
+            <li><a href="add_supplier/">Manage Suppliers</a></li>
+            <li><a href="add_warehouse/">Manage Warehouses</a></li>
+            <li><a href="add_raw_material/">Manage Raw Materials</a></li>
+            <li><a href="batches/">Manage Inventory Batches</a></li>
+            <li><a href="movements/">Record Stock Movements</a></li>
+        </ul>
+    </div>
+</section>
+
+{% endblock %}

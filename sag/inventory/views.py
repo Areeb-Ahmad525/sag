@@ -1,6 +1,7 @@
 from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.db.models import Sum
+from django.shortcuts import render
 
 from .models import Supplier, Warehouse, RawMaterial, InventoryBatch, StockMovement
 from .forms import (
@@ -16,18 +17,7 @@ def inventory_index(request):
     Main index page for the Inventory Management section.
     Provides basic navigation links to all list views.
     """
-    content = """
-        <h1 style="font-family: sans-serif;">Inventory Dashboard</h1>
-        <p style="font-family: sans-serif;">Use the links below to manage your inventory data.</p>
-        <ul style="font-family: sans-serif;">
-            <li><a href="suppliers/">Manage Suppliers</a></li>
-            <li><a href="warehouses/">Manage Warehouses</a></li>
-            <li><a href="materials/">Manage Raw Materials</a></li>
-            <li><a href="batches/">Manage Inventory Batches</a></li>
-            <li><a href="movements/">Record Stock Movements</a></li>
-        </ul>
-    """
-    return HttpResponse(content)
+    return render(request,'inventory_index.html')
 
 
 # --- List Views (Displaying all records) ---
@@ -70,55 +60,34 @@ def movement_list(request):
 
 # --- Create Views (Handling form submission) ---
 
-def supplier_create(request):
-    form = SupplierForm(request.POST or None)
+def add_supplier(request):
+    form = SupplierForm(request.POST or None) 
+    
     if form.is_valid():
         form.save()
-        return redirect('supplier_list')
+        # This redirect only happens if the form saved successfully
+        return redirect('add_supplier') 
     
-    # Simple HTML rendering of the form
-    html = f"""
-        <h1 style="font-family: sans-serif;">Create New Supplier</h1>
-        <form method="post" style="font-family: sans-serif;">
-            <input type="hidden" name="csrfmiddlewaretoken" value="dummytoken">
-            {form.as_p()}
-            <button type="submit" style="padding: 10px; cursor: pointer;">Save Supplier</button>
-        </form>
-        <p><a href="../">Back to List</a></p>
-    """
-    return HttpResponse(html)
+    # If it's a GET request or the form is invalid, render the template
+    # The form variable is passed to the template via the context dictionary
+    context = {'form': form}
+    return render(request, 'add_supplier.html', context)
 
-def warehouse_create(request):
+def add_warehouse(request):
     form = WarehouseForm(request.POST or None)
     if form.is_valid():
         form.save()
-        return redirect('warehouse_list')
-    html = f"""
-        <h1 style="font-family: sans-serif;">Create New Warehouse</h1>
-        <form method="post" style="font-family: sans-serif;">
-            <input type="hidden" name="csrfmiddlewaretoken" value="dummytoken">
-            {form.as_p()}
-            <button type="submit" style="padding: 10px; cursor: pointer;">Save Warehouse</button>
-        </form>
-        <p><a href="../">Back to List</a></p>
-    """
-    return HttpResponse(html)
+        return redirect('add_warehouse')
+    context={'form':form}
+    return render(request,'add_warehouse.html',context)
 
-def material_create(request):
+def add_raw_material(request):
     form = RawMaterialForm(request.POST or None)
     if form.is_valid():
         form.save()
-        return redirect('material_list')
-    html = f"""
-        <h1 style="font-family: sans-serif;">Create New Raw Material</h1>
-        <form method="post" style="font-family: sans-serif;">
-            <input type="hidden" name="csrfmiddlewaretoken" value="dummytoken">
-            {form.as_p()}
-            <button type="submit" style="padding: 10px; cursor: pointer;">Save Material</button>
-        </form>
-        <p><a href="../">Back to List</a></p>
-    """
-    return HttpResponse(html)
+        return redirect('add_raw_material')
+    context={'form':form}
+    return render(request,'add_raw_material.html',context)
 
 def batch_create(request):
     form = InventoryBatchForm(request.POST or None)

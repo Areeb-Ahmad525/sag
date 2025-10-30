@@ -3,19 +3,20 @@ from . import views
 
 urlpatterns = [
     # Main Index/Dashboard
+    # path('', views.inventory_index, name='inventory_index'),
     path('', views.inventory_index, name='inventory_index'),
 
     # Supplier URLs (e.g., /suppliers/, /suppliers/create/)
-    path('suppliers/', views.supplier_list, name='supplier_list'),
-    path('suppliers/create/', views.supplier_create, name='supplier_create'),
+    # path('suppliers/', views.supplier_list, name='supplier_list'),
+    path('add_supplier/', views.add_supplier, name='add_supplier'),
 
     # Warehouse URLs (e.g., /warehouses/, /warehouses/create/)
-    path('warehouses/', views.warehouse_list, name='warehouse_list'),
-    path('warehouses/create/', views.warehouse_create, name='warehouse_create'),
+    # path('warehouses/', views.warehouse_list, name='warehouse_list'),
+    path('add_warehouse/', views.add_warehouse, name='add_warehouse'),
 
     # Raw Material URLs (e.g., /materials/, /materials/create/)
-    path('materials/', views.material_list, name='material_list'),
-    path('materials/create/', views.material_create, name='material_create'),
+    # path('materials/', views.material_list, name='material_list'),
+    path('add_raw_material/', views.add_raw_material, name='add_raw_material'),
 
     # Inventory Batch URLs (e.g., /batches/, /batches/create/)
     path('batches/', views.batch_list, name='batch_list'),

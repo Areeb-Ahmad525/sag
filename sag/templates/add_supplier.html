@@ -1,0 +1,20 @@
+{% extends "management_base.html" %}  
+{% load static %}
+
+{% block title %} Add Supplier {% endblock %}
+
+{% block content %}
+    <h1 style="font-family: sans-serif;">Create New Supplier</h1>
+    
+    <form method="post" style="font-family: sans-serif;">
+
+        {% csrf_token %} 
+        
+        {# Renders the form passed from the view #}
+        {{ form.as_p }} 
+        
+        <button type="submit" style="padding: 10px; cursor: pointer;">Save Supplier</button>
+    </form>
+    
+    <p><a href="../">Back</a></p>
+{% endblock %}

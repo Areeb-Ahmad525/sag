@@ -1,0 +1,45 @@
+{% load static %}
+<header class="header">
+    <div class="top-bar">
+        <div class="container">
+            <div class="top-info">
+                <div class="info-item">
+                    <i class="fas fa-phone"></i>
+                    <span>+92 300 1234567</span>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-envelope"></i>
+                    <span>info@saudaluminium.com</span>
+                </div>
+                <div class="info-item">
+                    <i class="fas fa-clock"></i>
+                    <span>Mon - Sat: 9:00 AM - 6:00 PM</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo">
+                    <img src="{% static 'images/logo.jpg' %}" alt="Saud Aluminium and Glass">
+                    <div class="logo-text">
+                        <h1>Saud Aluminium</h1>
+                        <p>& Glass</p>
+                    </div>
+                </div>
+                
+                <button class="mobile-toggle" id="mobileToggle">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <ul class="nav-menu" id="navMenu">
+                    <li><a href="{% url 'inventory_index' %}" class="{% if request.resolver_match.url_name == 'home' %}active{% endif %}">Inventory</a></li>
+                    </ul>
+            </div>
+        </div>
+    </nav>
+</header>

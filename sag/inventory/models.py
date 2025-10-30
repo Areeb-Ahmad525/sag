@@ -3,10 +3,6 @@ from django.utils.translation import gettext_lazy as _
 
 # --- Model 1: Supplier (Implicitly required by RawMaterials) ---
 class Supplier(models.Model):
-    """
-    Represents the suppliers who provide the raw materials.
-    Required as a foreign key target for RawMaterial.
-    """
     name = models.CharField(max_length=100)
     contact_person = models.CharField(max_length=100, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
@@ -21,9 +17,6 @@ class Supplier(models.Model):
 
 # --- Model 2: Warehouses (warehouse_id, name, location) ---
 class Warehouse(models.Model):
-    """
-    Represents the physical locations where inventory is stored.
-    """
     # warehouse_id is handled automatically by Django's primary key 'id'
     name = models.CharField(max_length=100, unique=True, help_text=_("Name of the warehouse."))
     location = models.CharField(max_length=255, help_text=_("Physical address or location description."))
@@ -34,9 +27,6 @@ class Warehouse(models.Model):
 
 # --- Model 3: RawMaterials (material_id, type_name, ..., supplier_id) ---
 class RawMaterial(models.Model):
-    """
-    Defines the properties of a raw material.
-    """
     # material_id is handled automatically by Django's primary key 'id'
 
     TYPE_CHOICES = [
