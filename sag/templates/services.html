@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Our Services - Saud Aluminium and Glass{% endblock %}
+
+{% block content %}
+<!-- Page Header -->
+<section class="page-header">
+    <div class="container">
+        <h1>Our Services</h1>
+        <p>Comprehensive Aluminium and Glass Solutions</p>
+    </div>
+</section>
+
+<!-- Services Detail Section -->
+<section class="services-detail">
+    <div class="container">
+        <div class="section-intro">
+            <p>At Saud Aluminium and Glass, we provide a complete range of premium aluminium and glass solutions. Our expert team ensures quality installation and lasting results for every project.</p>
+        </div>
+        
+        <div class="service-detail-grid">
+            <!-- Service 1 -->
+            <div class="service-detail-card">
+                <div class="service-detail-image">
+                    <img src="{% static 'images/window.jpg' %}" alt="Aluminium Windows">
+                </div>
+                <div class="service-detail-content">
+                    <h3>Aluminium Windows</h3>
+                    <p>Our aluminium windows combine durability, energy efficiency, and aesthetic appeal. Available in various styles including sliding, casement, and fixed windows.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Energy-efficient double glazing</li>
+                        <li><i class="fas fa-check"></i> Powder-coated finish options</li>
+                        <li><i class="fas fa-check"></i> Weather-resistant designs</li>
+                        <li><i class="fas fa-check"></i> Custom sizes available</li>
+                    </ul>
+                    <a href="{% url 'contact' %}" class="btn btn-primary">Get Quote</a>
+                </div>
+            </div>
+            
+            <!-- Service 2 -->
+            <div class="service-detail-card reverse">
+                <div class="service-detail-image">
+                    <img src="{% static 'images/door.jpg' %}" alt="Glass Doors">
+                </div>
+                <div class="service-detail-content">
+                    <h3>Glass Doors</h3>
+                    <p>Elegant and secure glass doors perfect for homes, offices, and commercial spaces. We offer frameless, framed, and semi-framed options.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Tempered safety glass</li>
+                        <li><i class="fas fa-check"></i> Automatic and manual options</li>
+                        <li><i class="fas fa-check"></i> Modern hardware and locks</li>
+                        <li><i class="fas fa-check"></i> Soundproof solutions</li>
+                    </ul>
+                    <a href="{% url 'contact' %}" class="btn btn-primary">Get Quote</a>
+                </div>
+            </div>
+            
+            <!-- Service 3 -->
+            <div class="service-detail-card">
+                <div class="service-detail-image">
+                    <img src="{% static 'images/partition.jpg' %}" alt="Glass Partitions">
+                </div>
+                <div class="service-detail-content">
+                    <h3>Glass Partitions</h3>
+                    <p>Create flexible and modern office spaces with our glass partition systems. Maximize natural light while maintaining privacy and functionality.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Clear and frosted glass options</li>
+                        <li><i class="fas fa-check"></i> Frameless designs available</li>
+                        <li><i class="fas fa-check"></i> Easy installation and maintenance</li>
+                        <li><i class="fas fa-check"></i> Acoustic insulation options</li>
+                    </ul>
+                    <a href="{% url 'contact' %}" class="btn btn-primary">Get Quote</a>
+                </div>
+            </div>
+            
+            <!-- Service 4 -->
+            <div class="service-detail-card reverse">
+                <div class="service-detail-image">
+                    <img src="{% static 'images/shower.jpg' %}" alt="Shower Enclosures">
+                </div>
+                <div class="service-detail-content">
+                    <h3>Shower Enclosures</h3>
+                    <p>Premium shower enclosures designed for luxury bathrooms. Custom-made to fit your space with high-quality fittings and finishes.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> 10mm tempered glass</li>
+                        <li><i class="fas fa-check"></i> Chrome and matte black hardware</li>
+                        <li><i class="fas fa-check"></i> Frameless and semi-framed designs</li>
+                        <li><i class="fas fa-check"></i> Easy-clean glass coating</li>
+                    </ul>
+                    <a href="{% url 'contact' %}" class="btn btn-primary">Get Quote</a>
+                </div>
+            </div>
+            
+            <!-- Service 5 -->
+            <div class="service-detail-card">
+                <div class="service-detail-image">
+                    <img src="{% static 'images/curtain.jpg' %}" alt="Curtain Walls">
+                </div>
+                <div class="service-detail-content">
+                    <h3>Curtain Walls</h3>
+                    <p>Professional curtain wall systems for commercial buildings. Combining aesthetics with structural integrity and thermal performance.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> Structural glazing systems</li>
+                        <li><i class="fas fa-check"></i> Energy-efficient designs</li>
+                        <li><i class="fas fa-check"></i> Wind and seismic resistance</li>
+                        <li><i class="fas fa-check"></i> Custom architectural solutions</li>
+                    </ul>
+                    <a href="{% url 'contact' %}" class="btn btn-primary">Get Quote</a>
+                </div>
+            </div>
+            
+            <!-- Service 6 -->
+            <div class="service-detail-card reverse">
+                <div class="service-detail-image">
+                    <img src="{% static 'images/skylight.jpg' %}" alt="Skylights">
+                </div>
+                <div class="service-detail-content">
+                    <h3>Skylights & Canopies</h3>
+                    <p>Bring natural light into your space with our skylight and canopy solutions. Perfect for atriums, walkways, and outdoor areas.</p>
+                    <ul class="service-features">
+                        <li><i class="fas fa-check"></i> UV-resistant glass</li>
+                        <li><i class="fas fa-check"></i> Rain and weather protection</li>
+                        <li><i class="fas fa-check"></i> Retractable options available</li>
+                        <li><i class="fas fa-check"></i> Custom designs and shapes</li>
+                    </ul>
+                    <a href="{% url 'contact' %}" class="btn btn-primary">Get Quote</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Process Section -->
+<section class="process">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-label">Our Process</span>
+            <h2>How We Work</h2>
+            <p>Simple and transparent process from consultation to completion</p>
+        </div>
+        <div class="process-grid">
+            <div class="process-step">
+                <div class="step-number">01</div>
+                <h3>Consultation</h3>
+                <p>Free consultation to understand your requirements and provide expert advice</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">02</div>
+                <h3>Measurement</h3>
+                <p>Accurate site measurement and detailed quotation for your project</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">03</div>
+                <h3>Fabrication</h3>
+                <p>Quality fabrication using premium materials in our modern facility</p>
+            </div>
+            <div class="process-step">
+                <div class="step-number">04</div>
+                <h3>Installation</h3>
+                <p>Professional installation by our experienced team with warranty coverage</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Need a Custom Solution?</h2>
+            <p>Contact us for a free consultation and personalized quote</p>
+            <a href="{% url 'contact' %}" class="btn btn-white">Get Free Quote</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

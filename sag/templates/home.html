@@ -1,0 +1,152 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - Saud Aluminium and Glass{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+        <div class="container">
+            <h1 class="hero-title">Premium Aluminium & Glass Solutions</h1>
+            <p class="hero-subtitle">Transforming Spaces with Quality Craftsmanship and Modern Design</p>
+            <div class="hero-buttons">
+                <a href="{% url 'services' %}" class="btn btn-primary">Our Services</a>
+                <a href="{% url 'contact' %}" class="btn btn-secondary">Get Quote</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features">
+    <div class="container">
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-award"></i>
+                </div>
+                <h3>Quality Materials</h3>
+                <p>Premium grade aluminium and glass for lasting durability</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-tools"></i>
+                </div>
+                <h3>Expert Installation</h3>
+                <p>Professional team with years of experience</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Warranty Coverage</h3>
+                <p>Comprehensive warranty on all our work</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Timely Delivery</h3>
+                <p>Projects completed on schedule, every time</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- About Preview Section -->
+<section class="about-preview">
+    <div class="container">
+        <div class="about-grid">
+            <div class="about-image">
+                <img src="{% static 'images/about-preview.jpg' %}" alt="About Saud Aluminium">
+            </div>
+            <div class="about-content">
+                <span class="section-label">About Us</span>
+                <h2>Leading Aluminium & Glass Specialists in Dubai</h2>
+                <p>With over a decade of experience, Saud Aluminium and Glass has been at the forefront of providing exceptional aluminium and glass solutions for residential and commercial projects.</p>
+                <ul class="about-list">
+                    <li><i class="fas fa-check-circle"></i> Over 10 years of industry experience</li>
+                    <li><i class="fas fa-check-circle"></i> 500+ successful projects completed</li>
+                    <li><i class="fas fa-check-circle"></i> Certified and trained professionals</li>
+                    <li><i class="fas fa-check-circle"></i> Customer satisfaction guaranteed</li>
+                </ul>
+                <a href="{% url 'about' %}" class="btn btn-primary">Learn More</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Services Section -->
+<section class="services-preview">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-label">What We Offer</span>
+            <h2>Our Premium Services</h2>
+            <p>Comprehensive aluminium and glass solutions tailored to your needs</p>
+        </div>
+        <div class="services-grid">
+            <div class="service-card">
+                <img src="{% static 'images/window.jpg' %}" alt="Aluminium Windows">
+                <div class="service-content">
+                    <h3>Aluminium Windows</h3>
+                    <p>Energy-efficient windows with modern designs and superior insulation</p>
+                    <a href="{% url 'services' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="service-card">
+                <img src="{% static 'images/door.jpg' %}" alt="Glass Doors">
+                <div class="service-content">
+                    <h3>Glass Doors</h3>
+                    <p>Elegant glass doors for homes and offices with safety features</p>
+                    <a href="{% url 'services' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="service-card">
+                <img src="{% static 'images/partition.jpg' %}" alt="Glass Partitions">
+                <div class="service-content">
+                    <h3>Glass Partitions</h3>
+                    <p>Space-saving solutions for modern offices and commercial spaces</p>
+                    <a href="{% url 'services' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="service-card">
+                <img src="{% static 'images/shower.jpg' %}" alt="Shower Enclosures">
+                <div class="service-content">
+                    <h3>Shower Enclosures</h3>
+                    <p>Custom shower enclosures with tempered glass and premium fittings</p>
+                    <a href="{% url 'services' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="service-card">
+                <img src="{% static 'images/curtain.jpg' %}" alt="Curtain Walls">
+                <div class="service-content">
+                    <h3>Curtain Walls</h3>
+                    <p>Architectural glass facades for commercial buildings</p>
+                    <a href="{% url 'services' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+            <div class="service-card">
+                <img src="{% static 'images/skylight.jpg' %}" alt="Skylights">
+                <div class="service-content">
+                    <h3>Skylights & Canopies</h3>
+                    <p>Natural lighting solutions with weather-resistant designs</p>
+                    <a href="{% url 'services' %}" class="service-link">Learn More <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta">
+    <div class="container">
+        <div class="cta-content">
+            <h2>Ready to Transform Your Space?</h2>
+            <p>Get a free consultation and quote for your next project</p>
+            <a href="{% url 'contact' %}" class="btn btn-white">Contact Us Today</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
