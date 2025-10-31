@@ -2,6 +2,7 @@ from django.shortcuts import redirect
 from django.http import HttpResponse
 from django.db.models import Sum
 from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
 
 from .models import Supplier, Warehouse, RawMaterial, InventoryBatch, StockMovement
 from .forms import (
@@ -11,7 +12,7 @@ from .forms import (
     InventoryBatchForm,
     StockMovementForm
 )
-
+@login_required(login_url='/accounts/login')
 def inventory_index(request):
     """
     Main index page for the Inventory Management section.
@@ -59,7 +60,7 @@ def movement_list(request):
 
 
 # --- Create Views (Handling form submission) ---
-
+@login_required(login_url='/accounts/login')
 def add_supplier(request):
     form = SupplierForm(request.POST or None) 
     
@@ -73,6 +74,7 @@ def add_supplier(request):
     context = {'form': form}
     return render(request, 'add_supplier.html', context)
 
+@login_required(login_url='/accounts/login')
 def add_warehouse(request):
     form = WarehouseForm(request.POST or None)
     if form.is_valid():
@@ -81,6 +83,7 @@ def add_warehouse(request):
     context={'form':form}
     return render(request,'add_warehouse.html',context)
 
+@login_required(login_url='/accounts/login')
 def add_raw_material(request):
     form = RawMaterialForm(request.POST or None)
     if form.is_valid():
@@ -89,6 +92,7 @@ def add_raw_material(request):
     context={'form':form}
     return render(request,'add_raw_material.html',context)
 
+@login_required(login_url='/accounts/login')
 def add_inventory_batch(request):
     form = InventoryBatchForm(request.POST or None)
     if form.is_valid():
@@ -97,6 +101,7 @@ def add_inventory_batch(request):
     context={'form':form}
     return render(request,'inventory_batch.html',context)
 
+@login_required(login_url='/accounts/login')
 def stock_movement(request):
     form = StockMovementForm(request.POST or None)
     if form.is_valid():
