@@ -18,7 +18,7 @@ def inventory_index(request):
     Main index page for the Inventory Management section.
     Provides basic navigation links to all list views.
     """
-    return render(request,'inventory_index.html')
+    return render(request,'inventory/inventory_index.html')
 
 
 # --- List Views (Displaying all records) ---
@@ -72,7 +72,7 @@ def add_supplier(request):
     # If it's a GET request or the form is invalid, render the template
     # The form variable is passed to the template via the context dictionary
     context = {'form': form}
-    return render(request, 'add_supplier.html', context)
+    return render(request, 'inventory/add_supplier.html', context)
 
 @login_required(login_url='/accounts/login')
 def add_warehouse(request):
@@ -81,7 +81,7 @@ def add_warehouse(request):
         form.save()
         return redirect('add_warehouse')
     context={'form':form}
-    return render(request,'add_warehouse.html',context)
+    return render(request,'inventory/add_warehouse.html',context)
 
 @login_required(login_url='/accounts/login')
 def add_raw_material(request):
@@ -90,7 +90,7 @@ def add_raw_material(request):
         form.save()
         return redirect('add_raw_material')
     context={'form':form}
-    return render(request,'add_raw_material.html',context)
+    return render(request,'inventory/add_raw_material.html',context)
 
 @login_required(login_url='/accounts/login')
 def add_inventory_batch(request):
@@ -99,7 +99,7 @@ def add_inventory_batch(request):
         form.save()
         return redirect('add_inventory_batch')
     context={'form':form}
-    return render(request,'inventory_batch.html',context)
+    return render(request,'inventory/inventory_batch.html',context)
 
 @login_required(login_url='/accounts/login')
 def stock_movement(request):
