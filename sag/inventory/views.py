@@ -110,4 +110,4 @@ def stock_movement(request):
         form.save()
         return redirect('stock_movement')
     context={'form':form}
-    return render(request,'stock_movement.html',context)
+    return render(request,'inventory/stock_movement.html',context)
