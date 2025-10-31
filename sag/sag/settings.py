@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -43,6 +44,41 @@ INSTALLED_APPS = [
 ]
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap5"
 CRISPY_TEMPLATE_PACK = "bootstrap5"
+
+JAZZMIN_SETTINGS = {
+  
+    "site_title": "Inventory Admin Panel",
+    "site_header": "Saud Aluminum & Glass",
+    "site_brand": "Inventory Admin",
+    "welcome_sign": "Welcome!",
+    "custom_css": "css/rem_footer.css",
+  
+
+    
+    "theme": "default",               
+    "dark_mode_theme": None,          
+    "show_ui_builder": False,         
+    "topmenu_links": [
+        {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"app": "inventory"},
+    ],
+
+    
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "inventory.supplier": "fas fa-truck",
+        "inventory.rawmaterial": "fas fa-cubes",
+        "inventory.warehouse": "fas fa-warehouse",
+        "inventory.inventorybatch": "fas fa-boxes",
+        "inventory.stockmovement": "fas fa-exchange-alt",
+    },
+
+    
+    "navigation_expanded": True,      
+    "hide_apps": [],                  
+    "hide_models": [],
+}
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
