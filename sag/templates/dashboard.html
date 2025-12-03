@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aluminium & Glass Dashboard</title>
+
+    <style>
+        /* ---------- GLOBAL ---------- */
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f6fa;
+        }
+
+        a {
+            text-decoration: none;
+            color: white;
+        }
+
+        /* ---------- NAVBAR ---------- */
+        .navbar {
+            width: 100%;
+            height: 60px;
+            background: #1e272e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            font-weight: bold;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+        }
+
+        /* ---------- LAYOUT ---------- */
+        .container {
+            display: flex;
+            margin-top: 60px;     /* space for navbar */
+        }
+
+        /* ---------- SIDEBAR ---------- */
+        .sidebar {
+            width: 230px;
+            background: #2f3640;
+            height: 100vh;
+            position: fixed;
+            top: 60px;
+            left: 0;
+            padding-top: 20px;
+            color: white;
+        }
+
+        .sidebar a {
+            display: block;
+            padding: 14px 20px;
+            color: #dcdde1;
+            font-size: 15px;
+        }
+
+        .sidebar a:hover {
+            background: #353b48;
+            color: #fff;
+        }
+
+        /* ---------- MAIN CONTENT ---------- */
+        .main {
+            margin-left: 230px;
+            padding: 20px;
+            width: calc(100% - 230px);
+        }
+
+        /* ---------- KPI CARDS ---------- */
+        .kpi-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .kpi-card {
+            background: white;
+            width: 220px;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .kpi-title {
+            font-size: 14px;
+            color: #555;
+        }
+
+        .kpi-value {
+            margin-top: 10px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        /* ---------- CHART BOXES ---------- */
+        .chart-box {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .chart-title {
+            font-size: 18px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .chart-placeholder {
+            width: 100%;
+            height: 260px;
+            background: #ecf0f1;
+            border-radius: 10px;
+        }
+
+        /* ---------- TABLE SECTION ---------- */
+        .table-box {
+            margin-top: 30px;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table th {
+            background: #2f3640;
+            color: white;
+            padding: 10px;
+        }
+
+        table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- NAVIGATION BAR -->
+    <div class="navbar">
+        🏭 Aluminium & Glass Management System
+    </div>
+
+    <div class="container">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <a href="#">Dashboard</a>
+            <a href="#">Employees</a>
+            <a href="/inventory">Inventory</a>
+            <a href="#">Sales</a>
+            <a href="#">Purchase</a>
+            <a href="#">Production</a>
+            <a href="#">Projects</a>
+            <a href="#">QC</a>
+            <a href="#">Delivery</a>
+            <a href="#">Installation</a>
+            <a href="#">Finance</a>
+            <a href="#">Reports</a>
+            <a href="#">Settings</a>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main">
+
+            <!-- KPI CARDS -->
+            <div class="kpi-section">
+                <div class="kpi-card">
+                    <div class="kpi-title">Total Sales</div>
+                    <div class="kpi-value">PKR 0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Total Projects</div>
+                    <div class="kpi-value">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Total Employees</div>
+                    <div class="kpi-value">0</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-title">Active Machines</div>
+                    <div class="kpi-value">0</div>
+                </div>
+            </div>
+
+            <!-- CHARTS -->
+            <div class="chart-box">
+                <div class="chart-title">Sales Over Time</div>
+                <div class="chart-placeholder"></div>
+            </div>
+
+            <div class="chart-box">
+                <div class="chart-title">Project Status</div>
+                <div class="chart-placeholder"></div>
+            </div>
+
+            <div class="chart-box">
+                <div class="chart-title">Inventory Consumption</div>
+                <div class="chart-placeholder"></div>
+            </div>
+
+            <!-- TABLES -->
+            <div class="table-box">
+                <h3>Latest Employees</h3>
+                <table>
+                    <tr>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Hire Date</th>
+                    </tr>
+                    <tr>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                </table>
+            </div>
+
+            <div class="table-box">
+                <h3>Recent Sales Orders</h3>
+                <table>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Status</th>
+                        <th>Total Amount</th>
+                    </tr>
+                    <tr>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                    </tr>
+                </table>
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>

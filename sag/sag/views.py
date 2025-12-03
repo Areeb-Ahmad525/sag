@@ -5,6 +5,12 @@ def homePage(request):
     """Home page view"""
     return render(request, 'home.html')
 
+def dashboard_view(request):
+    context = {
+        'title': 'Dashboard',
+    }
+    return render(request, 'dashboard.html', context)
+
 def services(request):
     """Services page view"""
     return render(request, 'services.html')
@@ -39,3 +45,4 @@ def contact(request):
         # )
     
     return render(request, 'contact.html')
+
