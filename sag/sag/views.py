@@ -1,10 +1,12 @@
 from django.shortcuts import render
 from django.contrib import messages
+from django.contrib.auth.decorators import login_required
 
 def homePage(request):
     """Home page view"""
     return render(request, 'home.html')
 
+@login_required(login_url='/accounts/login')
 def dashboard_view(request):
     context = {
         'title': 'Dashboard',

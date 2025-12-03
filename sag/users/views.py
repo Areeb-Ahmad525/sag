@@ -13,7 +13,8 @@ def login_view(request):
         if user is not None:
             login(request,user)
             messages.success(request,'Logged In Successfully')
-            return redirect('inventory_index')
+            return redirect('dashboard')
+        # now it will navigate to main dashboard after successful login
         else:
             messages.error(request, "Invalid username or password.")
     return render(request, 'users/login.html')

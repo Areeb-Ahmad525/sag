@@ -12,7 +12,7 @@ from .forms import (
     InventoryBatchForm,
     StockMovementForm
 )
-@login_required(login_url='/accounts/login')
+# @login_required(login_url='/accounts/login')
 def inventory_index(request):
     """
     Main index page for the Inventory Management section.
