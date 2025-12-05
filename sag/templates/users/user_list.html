@@ -1,0 +1,35 @@
+{% load static %}
+<table border="1" cellpadding="10">
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Phone</th>
+        <th>Picture</th>
+        <th>Status</th>
+        <th>Action</th>
+    </tr>
+    {% for user in users %}
+    <tr>
+        <td>{{ user.name }}</td>
+        <td>{{ user.user.email }}</td>
+        <td>{{ user.phone }}</td>
+        <td>
+            {% if user.profile_picture %}
+                <img src="{{ user.profile_picture.url }}" width="50" height="50" />
+            {% else %}
+                No Image
+            {% endif %}
+        </td>
+        <td>{{ user.status|capfirst }}</td>
+        <td>
+            <a href="{% url 'toggle_user_status' user.user.id %}">
+                {% if user.status == 'active' %}
+                    Deactivate
+                {% else %}
+                    Activate
+                {% endif %}
+            </a>
+        </td>
+    </tr>
+    {% endfor %}
+</table>

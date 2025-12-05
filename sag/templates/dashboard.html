@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,6 +8,58 @@
 
     <style>
         /* ---------- GLOBAL ---------- */
+        /* USER DROPDOWN */
+.user-dropdown {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.user-pic {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 8px;
+    border: 2px solid #fff;
+}
+
+.username {
+    color: white;
+    font-weight: bold;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background-color: #2f3640;
+    min-width: 150px;
+    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    z-index: 100;
+    flex-direction: column;
+}
+
+.dropdown-content a {
+    color: white;
+    padding: 10px 15px;
+    text-decoration: none;
+    display: block;
+}
+
+.dropdown-content a:hover {
+    background-color: #353b48;
+}
+
+.user-dropdown:hover .dropdown-content {
+    display: flex;
+}
+
         body {
             margin: 0;
             font-family: Arial, sans-serif;
@@ -150,10 +203,21 @@
 
 <body>
 
-    <!-- NAVIGATION BAR -->
-    <div class="navbar">
-        🏭 Aluminium & Glass Management System
-    </div>
+    <<!-- NAVIGATION BAR -->
+        <div class="navbar">
+            Saud Aluminium and Glass
+
+            <!-- USER PROFILE DROPDOWN -->
+            <div class="user-dropdown">
+                <span class="username">{{ request.user.userprofile.name }}</span>
+                <img src="{% if request.user.userprofile.profile_picture %}{{ request.user.userprofile.profile_picture.url }}{% else %}{% static 'default_profile.jpg' %}{% endif %}" alt="Profile Picture" class="user-pic">
+                <div class="dropdown-content">
+                    <a href="{% url 'edit_profile' %}">Edit Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+
 
     <div class="container">
 
