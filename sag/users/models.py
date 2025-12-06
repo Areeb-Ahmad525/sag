@@ -20,7 +20,7 @@ class UserProfile(models.Model):
     father_name = models.CharField(max_length=150, blank=True)
     nationality = models.CharField(max_length=100, blank=True)
     phone = models.CharField(max_length=20, blank=True)
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="employee")
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default="admin")
     profile_picture = models.ImageField(upload_to="profiles/", blank=True, null=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default="active")
 
