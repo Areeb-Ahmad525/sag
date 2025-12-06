@@ -1,7 +1,13 @@
-from django.db import models
+# inventory/models.py
+from django.db import models, transaction
 from django.utils.translation import gettext_lazy as _
+from django.utils import timezone
+from django.conf import settings
 
-# --- Model 1: Supplier (Implicitly required by RawMaterials) ---
+# local import for typing only; avoids circular import in runtime
+User = settings.AUTH_USER_MODEL
+
+
 class Supplier(models.Model):
     name = models.CharField(max_length=100)
     contact_person = models.CharField(max_length=100, blank=True)
@@ -15,20 +21,18 @@ class Supplier(models.Model):
         verbose_name_plural = "Suppliers"
 
 
-# --- Model 2: Warehouses (warehouse_id, name, location) ---
 class Warehouse(models.Model):
-    # warehouse_id is handled automatically by Django's primary key 'id'
     name = models.CharField(max_length=100, unique=True, help_text=_("Name of the warehouse."))
     location = models.CharField(max_length=255, help_text=_("Physical address or location description."))
 
     def __str__(self):
         return f"{self.name} ({self.location[:30]}...)"
 
+    class Meta:
+        verbose_name_plural = "Warehouses"
 
-# --- Model 3: RawMaterials (material_id, type_name, ..., supplier_id) ---
+
 class RawMaterial(models.Model):
-    # material_id is handled automatically by Django's primary key 'id'
-
     TYPE_CHOICES = [
         ('AL', 'Aluminium'),
         ('GL', 'Glass'),
@@ -38,28 +42,20 @@ class RawMaterial(models.Model):
         ('TO', 'Tools'),
     ]
 
-    type_name = models.CharField(
-        max_length=2,
-        choices=TYPE_CHOICES,
-        default='AL',
-        help_text=_("The general type of the material (e.g., Aluminium, Glass).")
-    )
-    category = models.CharField(max_length=50, help_text=_("Category of the material (e.g., Metal Sheets, Adhesives)."))
-    unit = models.CharField(max_length=10, help_text=_("Unit of measure (e.g., KG, PCS, M)."))
-    size = models.CharField(max_length=50, blank=True, help_text=_("Dimensional size description (e.g., 4x8 ft)."))
-    thickness = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True, help_text=_("Thickness in mm or another relevant unit."))
+    type_name = models.CharField(max_length=2, choices=TYPE_CHOICES, default='AL')
+    category = models.CharField(max_length=50)
+    unit = models.CharField(max_length=10)
+    size = models.CharField(max_length=50, blank=True)
+    thickness = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
     colour = models.CharField(max_length=30, blank=True)
 
-    # Stock-related fields
     current_stock = models.IntegerField(default=0, help_text=_("Total current quantity available across all batches/warehouses."))
-    reorder_level = models.IntegerField(default=0, help_text=_("Minimum stock level before a reorder is triggered."))
+    reorder_level = models.IntegerField(default=0)
 
-    # Relationship: supplier_id (M:1 to Supplier)
     supplier = models.ForeignKey(
         Supplier,
-        on_delete=models.SET_NULL, # If a supplier is deleted, material supplier is set to NULL
-        null=True,
-        blank=True,
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
         related_name='materials'
     )
 
@@ -70,47 +66,30 @@ class RawMaterial(models.Model):
         verbose_name_plural = "Raw Materials"
         ordering = ['type_name']
 
+    def recalc_current_stock(self):
+        """
+        Recalculate current_stock from sum of batch qty_available.
+        """
+        total = self.batches.aggregate(total=models.Sum('qty_available'))['total'] or 0
+        self.current_stock = int(total)
+        self.save(update_fields=['current_stock'])
 
-# --- Model 4: InventoryBatches (batch_id, material_id, warehouse_id, qty_available, received_date) ---
+
 class InventoryBatch(models.Model):
-    """
-    Represents a specific batch of a raw material received on a certain date,
-    stored at a particular warehouse.
-    """
-    # batch_id is handled automatically by Django's primary key 'id'
-
-    # Relationship: material_id (M:1 to RawMaterial)
-    material = models.ForeignKey(
-        RawMaterial,
-        on_delete=models.CASCADE, # If material is deleted, delete its batches
-        related_name='batches'
-    )
-
-    # Relationship: warehouse_id (M:1 to Warehouse)
-    warehouse = models.ForeignKey(
-        Warehouse,
-        on_delete=models.PROTECT, # Prevent deleting warehouse if batches exist there
-        related_name='inventory_batches'
-    )
-
+    material = models.ForeignKey(RawMaterial, on_delete=models.CASCADE, related_name='batches')
+    warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='inventory_batches')
     qty_available = models.IntegerField(default=0)
     received_date = models.DateField()
 
     def __str__(self):
-        return f"Batch {self.pk} of {self.material.type_name} @ {self.warehouse.name}"
+        return f"Batch {self.pk} of {self.material.get_type_name_display()} @ {self.warehouse.name}"
 
     class Meta:
         verbose_name_plural = "Inventory Batches"
         ordering = ['-received_date']
 
 
-# --- Model 5: StockMovements (movement_id, batch_id, from_where, to_where, qty, movement_type, created_at) ---
 class StockMovement(models.Model):
-    """
-    Records the movement of stock, such as receiving, consumption, or transfer.
-    """
-    # movement_id is handled automatically by Django's primary key 'id'
-
     MOVEMENT_CHOICES = [
         ('IN', 'Stock In (Receive)'),
         ('OUT', 'Stock Out (Consumption/Sale)'),
@@ -118,42 +97,16 @@ class StockMovement(models.Model):
         ('ADJ', 'Adjustment'),
     ]
 
-    # Relationship: batch_id (M:1 to InventoryBatch)
-    batch = models.ForeignKey(
-        InventoryBatch,
-        on_delete=models.PROTECT, # Prevent deleting a batch that has movement records
-        related_name='movements'
-    )
-
-    # In a real system, 'from_where' and 'to_where' should link to Warehouse or be Nullable
-    # We use ForeignKey to Warehouse for structural integrity.
-    from_warehouse = models.ForeignKey(
-        Warehouse,
-        on_delete=models.PROTECT,
-        related_name='outgoing_movements',
-        null=True, # Allow null for 'IN' movements (receiving new stock)
-        blank=True,
-        help_text=_("Source warehouse for the movement. Null if stock is newly received.")
-    )
-
-    to_warehouse = models.ForeignKey(
-        Warehouse,
-        on_delete=models.PROTECT,
-        related_name='incoming_movements',
-        null=True, # Allow null for 'OUT' movements (consumption/sale)
-        blank=True,
-        help_text=_("Destination warehouse for the movement. Null if stock is consumed.")
-    )
-
-    qty = models.IntegerField(help_text=_("Quantity moved."))
-    
-    movement_type = models.CharField(
-        max_length=3,
-        choices=MOVEMENT_CHOICES,
-        help_text=_("Type of movement (e.g., IN, OUT, Transfer).")
-    )
-    
+    batch = models.ForeignKey(InventoryBatch, on_delete=models.PROTECT, related_name='movements')
+    from_warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='outgoing_movements', null=True, blank=True)
+    to_warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, related_name='incoming_movements', null=True, blank=True)
+    qty = models.IntegerField()
+    movement_type = models.CharField(max_length=3, choices=MOVEMENT_CHOICES)
     created_at = models.DateTimeField(auto_now_add=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True)
+
+    # internal flag to prevent double-processing when saving programmatically
+    _processed = False
 
     def __str__(self):
         return f"{self.movement_type} {self.qty} units of Batch {self.batch.pk}"
@@ -161,3 +114,85 @@ class StockMovement(models.Model):
     class Meta:
         verbose_name_plural = "Stock Movements"
         ordering = ['-created_at']
+
+    def process_movement(self):
+        """
+        Apply the movement to batches and recalc RawMaterial.current_stock.
+        This function should be called inside a DB transaction.
+        """
+        if self._processed:
+            return
+
+        if self.qty <= 0:
+            raise ValueError("Quantity must be positive")
+
+        material = self.batch.material
+
+        if self.movement_type == 'IN':
+            # Increase batch qty
+            self.batch.qty_available = models.F('qty_available') + self.qty
+            self.batch.save(update_fields=['qty_available'])
+        elif self.movement_type == 'OUT':
+            # Decrease batch qty, ensure not negative
+            self.batch.refresh_from_db()
+            if self.qty > self.batch.qty_available:
+                raise ValueError("Not enough stock in selected batch for OUT movement.")
+            self.batch.qty_available = models.F('qty_available') - self.qty
+            self.batch.save(update_fields=['qty_available'])
+        elif self.movement_type == 'TR':
+            # Transfer from selected batch (source) to destination warehouse.
+            # Verify from_warehouse equals batch.warehouse
+            self.batch.refresh_from_db()
+            if not self.from_warehouse or not self.to_warehouse:
+                raise ValueError("Transfer requires both from_warehouse and to_warehouse.")
+            if self.from_warehouse != self.batch.warehouse:
+                raise ValueError("Selected batch does not belong to the from_warehouse.")
+            if self.qty > self.batch.qty_available:
+                raise ValueError("Not enough stock in selected batch for Transfer.")
+
+            # Decrease source batch
+            self.batch.qty_available = models.F('qty_available') - self.qty
+            self.batch.save(update_fields=['qty_available'])
+
+            # Find a batch for same material in to_warehouse to increase, otherwise create one
+            dest_batch = InventoryBatch.objects.filter(material=material, warehouse=self.to_warehouse).order_by('-received_date').first()
+            if dest_batch:
+                dest_batch.qty_available = models.F('qty_available') + self.qty
+                dest_batch.save(update_fields=['qty_available'])
+            else:
+                # create a new batch representing transferred stock
+                InventoryBatch.objects.create(
+                    material=material,
+                    warehouse=self.to_warehouse,
+                    qty_available=self.qty,
+                    received_date=timezone.now().date()
+                )
+        elif self.movement_type == 'ADJ':
+            # Adjustment may be positive or negative; sign of qty controls that
+            # Allow negative adjustments up to making batch zero but not negative
+            self.batch.refresh_from_db()
+            new_qty = self.batch.qty_available + self.qty
+            if new_qty < 0:
+                raise ValueError("Adjustment results in negative stock.")
+            self.batch.qty_available = models.F('qty_available') + self.qty
+            self.batch.save(update_fields=['qty_available'])
+        else:
+            raise ValueError("Unknown movement type")
+
+        # after updating batch(s), recalc material current stock
+        material.recalc_current_stock()
+        self._processed = True
+
+    def save(self, *args, **kwargs):
+        """
+        Override save to process stock changes on create.
+        Use transaction.atomic to ensure consistency.
+        """
+        is_new = self.pk is None
+        with transaction.atomic():
+            super().save(*args, **kwargs)  # save movement record
+            if is_new:
+                # process only on initial creation
+                self.process_movement()
+                # ensure movement record points to same F-changed values by reloading batches
+                # No further action needed

@@ -1,0 +1,31 @@
+{% extends 'inventory/base_inventory.html' %}
+
+{% block title %}Movement List{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Stock Movement List</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Material</th>
+            <th>Warehouse</th>
+            <th>Movement Type</th>
+            <th>Quantity</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for m in movements %}
+        <tr>
+            <td>{{ m.material.name }}</td>
+            <td>{{ m.warehouse.name }}</td>
+            <td>{{ m.movement_type }}</td>
+            <td>{{ m.quantity }}</td>
+            <td>{{ m.date }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

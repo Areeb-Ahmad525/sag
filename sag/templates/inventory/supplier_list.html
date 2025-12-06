@@ -1,0 +1,29 @@
+{% extends 'inventory/base_inventory.html' %}
+
+{% block title %}Supplier List{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Supplier List</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Contact Person</th>
+            <th>Phone</th>
+            <th>Email</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for s in suppliers %}
+        <tr>
+            <td>{{ s.name }}</td>
+            <td>{{ s.contact_person }}</td>
+            <td>{{ s.phone_number }}</td>
+            <td>{{ s.email }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
