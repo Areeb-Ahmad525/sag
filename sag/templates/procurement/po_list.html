@@ -1,0 +1,21 @@
+{% extends 'management_base.html' %}
+{% block content %}
+<h2>Purchase Orders</h2>
+<p><a href="{% url 'procurement:po_create' %}" class="btn btn-primary">Create PO</a></p>
+<table class="table">
+  <thead><tr><th>PO#</th><th>Supplier</th><th>Status</th><th>Created</th><th>Action</th></tr></thead>
+  <tbody>
+    {% for po in pos %}
+    <tr>
+      <td>{{ po.po_number }}</td>
+      <td>{{ po.supplier.name }}</td>
+      <td>{{ po.get_status_display }}</td>
+      <td>{{ po.created_at }}</td>
+      <td><a href="{% url 'procurement:po_detail' po.id %}">View</a></td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="5">No purchase orders yet.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

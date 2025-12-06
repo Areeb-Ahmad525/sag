@@ -69,7 +69,11 @@
             Inventory
         </a>
 
-        <a class="nav-link disabled">Procurement (coming soon)</a>
+        <a class="nav-link {% if request.resolver_match.url_name == 'procurement_index' %}active{% endif %}"
+        href="{% url 'procurement_index' %}">
+        <i class="fa-solid fa-file-invoice"></i> Procurement
+        </a>
+
         <a class="nav-link disabled">Production (coming soon)</a>
         <a class="nav-link disabled">Sales (coming soon)</a>
         <a class="nav-link disabled">HR (coming soon)</a>

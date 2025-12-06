@@ -1,0 +1,25 @@
+{% extends 'management_base.html' %}
+{% block content %}
+<h2>GRN {{ grn.grn_number }}</h2>
+<p>Supplier: {{ grn.supplier.name }} | Warehouse: {{ grn.warehouse.name }} | Status: {{ grn.get_status_display }}</p>
+
+<h4>Items</h4>
+<ul>
+  {% for it in grn.items.all %}
+    <li>{{ it.material }} — Qty: {{ it.quantity }} — PO Item: {{ it.po_item }}</li>
+  {% empty %}
+    <li>No items yet.</li>
+  {% endfor %}
+</ul>
+
+<hr/>
+<h4>Add item</h4>
+<form method="post">{% csrf_token %}
+  {{ item_form.as_p }}
+  <button type="submit" name="add_item" class="btn btn-secondary">Add Item</button>
+</form>
+
+{% if grn.status == 'received' %}
+  <a href="{% url 'procurement:grn_confirm' grn.id %}" class="btn btn-success">Confirm GRN (Update Inventory)</a>
+{% endif %}
+{% endblock %}

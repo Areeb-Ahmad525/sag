@@ -1,0 +1,30 @@
+{% extends 'management_base.html' %}
+{% block content %}
+<h2>PR #{{ pr.id }} - {{ pr.title }}</h2>
+<p>Status: <strong>{{ pr.get_status_display }}</strong></p>
+<p>Created by: {{ pr.created_by }} on {{ pr.created_at }}</p>
+
+<h4>Items</h4>
+<ul>
+  {% for it in pr.items.all %}
+    <li>{{ it.material }} — {{ it.quantity }} {{ it.unit }}</li>
+  {% empty %}
+    <li>No items yet.</li>
+  {% endfor %}
+</ul>
+
+<hr/>
+<h4>Add item</h4>
+<form method="post">{% csrf_token %}
+  {{ item_form.as_p }}
+  <button type="submit" name="add_item" class="btn btn-secondary">Add Item</button>
+</form>
+
+<hr/>
+{% if pr.status == 'draft' %}
+  <a href="{% url 'procurement:pr_submit' pr.id %}" class="btn btn-success">Submit PR</a>
+{% endif %}
+{% if pr.status == 'submitted' and request.user.userprofile.role in ['admin','procurement'] %}
+  <a href="{% url 'procurement:pr_approve' pr.id %}" class="btn btn-primary">Approve PR</a>
+{% endif %}
+{% endblock %}

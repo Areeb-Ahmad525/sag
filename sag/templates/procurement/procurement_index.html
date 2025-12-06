@@ -1,0 +1,34 @@
+{% extends "procurement/base_procurement.html" %}
+{% block title %}Procurement Dashboard{% endblock %}
+
+{% block content %}
+
+<h2 class="mb-2">Procurement Dashboard</h2>
+<p class="text-muted">Welcome to the procurement module.</p>
+
+<div class="row mt-4">
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow-sm border-0">
+            <h5>Total Purchase Requests</h5>
+            <p class="display-6 m-0">34</p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow-sm border-0">
+            <h5>Pending Quotations</h5>
+            <p class="display-6 m-0">12</p>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card p-3 shadow-sm border-0">
+            <h5>Pending Purchase Orders</h5>
+            <p class="display-6 m-0">7</p>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

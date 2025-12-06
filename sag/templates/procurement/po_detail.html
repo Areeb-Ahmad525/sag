@@ -1,0 +1,25 @@
+{% extends 'management_base.html' %}
+{% block content %}
+<h2>PO {{ po.po_number }}</h2>
+<p>Supplier: {{ po.supplier.name }} | Status: {{ po.get_status_display }}</p>
+
+<h4>Items</h4>
+<ul>
+  {% for it in po.items.all %}
+    <li>{{ it.material }} — Qty: {{ it.quantity }} — Received: {{ it.received_quantity }}</li>
+  {% empty %}
+    <li>No items yet.</li>
+  {% endfor %}
+</ul>
+
+<hr/>
+<h4>Add item</h4>
+<form method="post">{% csrf_token %}
+  {{ item_form.as_p }}
+  <button type="submit" name="add_item" class="btn btn-secondary">Add Item</button>
+</form>
+
+{% if po.status == 'draft' %}
+  <a href="{% url 'procurement:po_send' po.id %}" class="btn btn-success">Mark Sent</a>
+{% endif %}
+{% endblock %}

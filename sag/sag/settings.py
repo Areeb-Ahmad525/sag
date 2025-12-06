@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
     # 'users',
+    'procurement',
 ]
 
 import os

@@ -30,6 +30,7 @@ urlpatterns = [
     path('contact/', views.contact, name='contact'),
     path('inventory/',include('inventory.urls')),
     path('accounts/',include('users.urls')),
+    path('procurement/', include('procurement.urls', namespace='procurement')),
     
 ]
 if settings.DEBUG:
