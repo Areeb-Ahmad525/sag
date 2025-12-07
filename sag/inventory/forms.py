@@ -1,6 +1,6 @@
 # inventory/forms.py
 from django import forms
-from .models import Supplier, Warehouse, RawMaterial, InventoryBatch, StockMovement
+from .models import Supplier, Warehouse,Product, RawMaterial, InventoryBatch, StockMovement
 
 class SupplierForm(forms.ModelForm):
     class Meta:
@@ -82,3 +82,9 @@ class StockMovementForm(forms.ModelForm):
             pass
 
         return cleaned
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = "__all__"

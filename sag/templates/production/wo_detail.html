@@ -1,0 +1,45 @@
+{% extends "management_base.html" %}
+{% block content %}
+<h3>WO: {{ wo.work_order_number }}</h3>
+<p>Product: {{ wo.product }} — Qty: {{ wo.quantity_to_produce }} — Status: {{ wo.status }}</p>
+
+<hr>
+<h5>Record Consumption</h5>
+<form method="post">
+  {% csrf_token %}
+  {{ consumption_form.as_p }}
+  <button name="add_consumption" class="btn btn-sm btn-danger">Record Consumption (OUT)</button>
+</form>
+
+<hr>
+<h5>Record Production Output</h5>
+<form method="post">
+  {% csrf_token %}
+  {{ output_form.as_p }}
+  <button name="add_output" class="btn btn-sm btn-success">Add Output</button>
+</form>
+
+<hr>
+<h5>Record Wastage</h5>
+<form method="post">
+  {% csrf_token %}
+  {{ wastage_form.as_p }}
+  <button name="add_wastage" class="btn btn-sm btn-warning">Add Wastage</button>
+</form>
+
+<hr>
+<h5>Consumptions</h5>
+<ul>
+  {% for c in wo.consumptions.all %}
+    <li>{{ c.timestamp }} — {{ c.raw_material }} — {{ c.quantity_used }} — Batch: {{ c.batch }}</li>
+  {% empty %}<li>No consumption recorded.</li>{% endfor %}
+</ul>
+
+<h5>Outputs</h5>
+<ul>
+  {% for o in wo.outputs.all %}
+    <li>{{ o.timestamp }} — {{ o.quantity_produced }} — Warehouse: {{ o.warehouse }}</li>
+  {% empty %}<li>No outputs recorded.</li>{% endfor %}
+</ul>
+
+{% endblock %}

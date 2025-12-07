@@ -31,7 +31,8 @@ urlpatterns = [
     path('inventory/',include('inventory.urls')),
     path('accounts/',include('users.urls')),
     path('procurement/', include('procurement.urls', namespace='procurement')),
-    
+    path('production/', include('production.urls', namespace='production')),
+
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
