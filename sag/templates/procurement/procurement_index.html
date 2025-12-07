@@ -2,29 +2,12 @@
 {% block title %}Procurement Dashboard{% endblock %}
 {% block content %}
 <h2>Procurement Dashboard</h2>
-<p class="text-muted">Summary and quick links.</p>
+<p class="text-muted">Welcome to the procurement module.</p>
 
 <div class="row mt-4">
-    <div class="col-md-4">
-        <div class="card p-3 shadow-sm">
-            <h6>Total Purchase Requests</h6>
-            <p class="display-6">{{ total_prs }}</p>
-            <a href="{% url 'procurement:pr_list' %}" class="small">View PRs</a>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card p-3 shadow-sm">
-            <h6>Total Purchase Orders</h6>
-            <p class="display-6">{{ total_pos }}</p>
-            <a href="{% url 'procurement:po_list' %}" class="small">View POs</a>
-        </div>
-    </div>
-    <div class="col-md-4">
-        <div class="card p-3 shadow-sm">
-            <h6>Total GRNs</h6>
-            <p class="display-6">{{ total_grns }}</p>
-            <a href="{% url 'procurement:grn_list' %}" class="small">View GRNs</a>
-        </div>
-    </div>
+  <div class="col-md-3"><div class="card p-3"><h6>Total PRs</h6><div class="h4">{{ pr_count }}</div></div></div>
+  <div class="col-md-3"><div class="card p-3"><h6>Total Quotations</h6><div class="h4">{{ q_count }}</div></div></div>
+  <div class="col-md-3"><div class="card p-3"><h6>Total POs</h6><div class="h4">{{ po_count }}</div></div></div>
+  <div class="col-md-3"><div class="card p-3"><h6>Total GRNs</h6><div class="h4">{{ grn_count }}</div></div></div>
 </div>
 {% endblock %}

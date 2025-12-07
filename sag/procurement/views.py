@@ -8,36 +8,41 @@ from users.decorators import role_required
 
 from .models import (
     PurchaseRequest, PurchaseRequestItem,
+    Quotation, QuotationItem,
     PurchaseOrder, PurchaseOrderItem,
     GoodsReceived, GoodsReceivedItem
 )
 from .forms import (
     PurchaseRequestForm, PurchaseRequestItemForm,
+    QuotationForm, QuotationItemForm,
     PurchaseOrderForm, PurchaseOrderItemForm,
     GoodsReceivedForm, GoodsReceivedItemForm
 )
 from inventory.models import InventoryBatch, StockMovement, RawMaterial
 
+# Procurement landing
 @login_required
 @role_required(['procurement','admin','hr'])
 def procurement_index(request):
-    # dashboard cards
-    total_prs = PurchaseRequest.objects.count()
-    total_pos = PurchaseOrder.objects.count()
-    total_grns = GoodsReceived.objects.count()
-    context = {
-        'total_prs': total_prs,
-        'total_pos': total_pos,
-        'total_grns': total_grns,
+    # counts for dashboard
+    pr_count = PurchaseRequest.objects.count()
+    q_count = Quotation.objects.count()
+    po_count = PurchaseOrder.objects.count()
+    grn_count = GoodsReceived.objects.count()
+    ctx = {
+        'pr_count': pr_count,
+        'q_count': q_count,
+        'po_count': po_count,
+        'grn_count': grn_count,
     }
-    return render(request, 'procurement/procurement_index.html', context)
+    return render(request, 'procurement/procurement_index.html', ctx)
 
 
-# ---------- Purchase Requests ----------
+# --- PR views ---
 @login_required
-@role_required(['procurement','admin'])
+@role_required(['procurement','admin','hr'])
 def pr_list(request):
-    prs = PurchaseRequest.objects.all().order_by('-created_at')
+    prs = PurchaseRequest.objects.order_by('-created_at')
     return render(request, 'procurement/pr_list.html', {'prs': prs})
 
 
@@ -99,11 +104,84 @@ def pr_approve(request, pr_id):
     return redirect('procurement:pr_detail', pr_id=pr.id)
 
 
-# ---------- Purchase Orders ----------
+# --- Quotation views ---
+@login_required
+@role_required(['procurement','admin'])
+def quotation_list(request):
+    qs = Quotation.objects.order_by('-created_at')
+    return render(request, 'procurement/quotation_list.html', {'quotations': qs})
+
+
+@login_required
+@role_required(['procurement','admin'])
+def quotation_create(request):
+    if request.method == 'POST':
+        form = QuotationForm(request.POST)
+        if form.is_valid():
+            q = form.save(commit=False)
+            q.created_by = request.user
+            q.status = 'sent' if 'send' in request.POST else 'draft'
+            q.save()
+            messages.success(request, "Quotation saved.")
+            return redirect('procurement:quotation_detail', q_id=q.id)
+    else:
+        form = QuotationForm()
+    return render(request, 'procurement/quotation_form.html', {'form': form})
+
+
+@login_required
+@role_required(['procurement','admin'])
+def quotation_detail(request, q_id):
+    q = get_object_or_404(Quotation, pk=q_id)
+    item_form = QuotationItemForm()
+    if request.method == 'POST' and 'add_item' in request.POST:
+        item_form = QuotationItemForm(request.POST)
+        if item_form.is_valid():
+            item = item_form.save(commit=False)
+            item.quotation = q
+            item.save()
+            messages.success(request, "Item added to Quotation.")
+            return redirect('procurement:quotation_detail', q_id=q.id)
+    return render(request, 'procurement/quotation_detail.html', {'q': q, 'item_form': item_form})
+
+
+@login_required
+@role_required(['procurement','admin'])
+def quotation_accept(request, q_id):
+    """
+    Accept a quotation — this typically triggers PO creation.
+    We'll create a PO with items prefilled from quotation items and set quotation.status='accepted'.
+    """
+    q = get_object_or_404(Quotation, pk=q_id)
+    if q.status == 'accepted':
+        messages.info(request, "Quotation already accepted.")
+        return redirect('procurement:quotation_detail', q_id=q.id)
+
+    # create PO from this quotation
+    po = PurchaseOrder.objects.create(
+        supplier = q.supplier,
+        created_by = request.user,
+        status = 'draft',
+    )
+    # populate PO items
+    for itm in q.items.all():
+        PurchaseOrderItem.objects.create(
+            po = po,
+            material = itm.material,
+            quantity = itm.quantity,
+            unit_price = itm.unit_price or None
+        )
+    q.status = 'accepted'
+    q.save()
+    messages.success(request, f"Quotation accepted and PO#{po.pk} created.")
+    return redirect('procurement:po_detail', po_id=po.id)
+
+
+# --- PO views ---
 @login_required
 @role_required(['procurement','admin'])
 def po_list(request):
-    pos = PurchaseOrder.objects.all().order_by('-created_at')
+    pos = PurchaseOrder.objects.order_by('-created_at')
     return render(request, 'procurement/po_list.html', {'pos': pos})
 
 
@@ -152,11 +230,11 @@ def po_send(request, po_id):
     return redirect('procurement:po_detail', po_id=po.id)
 
 
-# ---------- Goods Received (GRN) ----------
+# --- GRN views ---
 @login_required
 @role_required(['procurement','admin','inventory'])
 def grn_list(request):
-    grns = GoodsReceived.objects.all().order_by('-created_at')
+    grns = GoodsReceived.objects.order_by('-created_at')
     return render(request, 'procurement/grn_list.html', {'grns': grns})
 
 
@@ -205,9 +283,8 @@ def grn_confirm(request, grn_id):
         messages.error(request, "Only received GRNs can be confirmed.")
         return redirect('procurement:grn_detail', grn_id=grn.id)
 
-    # For each item, create/update batch and stock movement
     for item in grn.items.all():
-        # Create a new InventoryBatch for this GRN item
+        # Create a new InventoryBatch for this GRN item or add to existing batch
         batch = InventoryBatch.objects.create(
             material = item.material,
             warehouse = grn.warehouse,
@@ -220,12 +297,12 @@ def grn_confirm(request, grn_id):
             from_warehouse = None,
             to_warehouse = grn.warehouse,
             qty = item.quantity,
-            movement_type = 'IN'
+            movement_type = 'IN',
+            created_by = request.user
         )
 
-        # Update material current_stock (quick update here)
-        item.material.current_stock = (item.material.current_stock or 0) + item.quantity
-        item.material.save()
+        # Update material current_stock quickly (recalc could be called elsewhere)
+        item.material.recalc_current_stock()
 
         # If GRN references a PO item, update received quantity there
         if item.po_item:

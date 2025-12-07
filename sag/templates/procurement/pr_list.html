@@ -1,31 +1,23 @@
+
+
 {% extends "procurement/base_procurement.html" %}
-{% block title %}Purchase Requests{% endblock %}
 {% block content %}
 <h3>Purchase Requests</h3>
-<p><a class="btn btn-primary btn-sm" href="{% url 'procurement:pr_create' %}">New PR</a></p>
-
-<table class="table table-sm table-striped">
-    <thead>
-        <tr><th>#</th><th>Title</th><th>Created by</th><th>Status</th><th>Created</th><th>Actions</th></tr>
-    </thead>
-    <tbody>
-        {% for pr in prs %}
-            <tr>
-                <td>{{ pr.pk }}</td>
-                <td>{{ pr.title }}</td>
-                <td>{{ pr.created_by.username }}</td>
-                <td>{{ pr.get_status_display }}</td>
-                <td>{{ pr.created_at|date:"Y-m-d H:i" }}</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-secondary" href="{% url 'procurement:pr_detail' pr.pk %}">View</a>
-                    {% if pr.status == 'draft' and request.user.userprofile.role in 'procurement admin' %}
-                        <a class="btn btn-sm btn-success" href="{% url 'procurement:pr_submit' pr.pk %}">Submit</a>
-                    {% endif %}
-                </td>
-            </tr>
-        {% empty %}
-            <tr><td colspan="6">No purchase requests.</td></tr>
-        {% endfor %}
-    </tbody>
+<p><a class="btn btn-primary btn-sm" href="{% url 'procurement:pr_create' %}">Create PR</a></p>
+<table class="table">
+  <thead><tr><th>#</th><th>Title</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for pr in prs %}
+      <tr>
+        <td>{{ pr.pk }}</td>
+        <td>{{ pr.title }}</td>
+        <td>{{ pr.get_status_display }}</td>
+        <td>{{ pr.created_at|date:"Y-m-d H:i" }}</td>
+        <td><a href="{% url 'procurement:pr_detail' pr.pk %}" class="btn btn-sm btn-outline-primary">View</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="5">No PRs yet.</td></tr>
+    {% endfor %}
+  </tbody>
 </table>
 {% endblock %}

@@ -1,41 +1,35 @@
+
+
 {% extends "procurement/base_procurement.html" %}
-{% block title %}PR Detail{% endblock %}
 {% block content %}
-<h3>PR #{{ pr.pk }} - {{ pr.title }}</h3>
+<h3>PR #{{ pr.pk }} — {{ pr.title }}</h3>
 <p>Status: <strong>{{ pr.get_status_display }}</strong></p>
-<p>Created: {{ pr.created_at|date:"Y-m-d H:i" }}</p>
 <p>{{ pr.description }}</p>
 
-<hr/>
 <h5>Items</h5>
-<table class="table table-sm">
-  <thead><tr><th>Material</th><th>Qty</th><th>Requested Date</th><th>Notes</th></tr></thead>
+<table class="table">
+  <thead><tr><th>Material</th><th>Qty</th><th>Requested Date</th></tr></thead>
   <tbody>
     {% for it in pr.items.all %}
-      <tr>
-        <td>{{ it.material }}</td>
-        <td>{{ it.quantity }}</td>
-        <td>{{ it.requested_date }}</td>
-        <td>{{ it.notes }}</td>
-      </tr>
+      <tr><td>{{ it.material }}</td><td>{{ it.quantity }}</td><td>{{ it.requested_date }}</td></tr>
     {% empty %}
-      <tr><td colspan="4">No items.</td></tr>
+      <tr><td colspan="3">No items.</td></tr>
     {% endfor %}
   </tbody>
 </table>
 
-<hr/>
-<h5>Add Item</h5>
-<form method="post">
-  {% csrf_token %}
+<h6>Add Item</h6>
+<form method="post">{% csrf_token %}
   {{ item_form.as_p }}
-  <button class="btn btn-sm btn-primary" name="add_item" type="submit">Add Item</button>
+  <button class="btn btn-sm btn-primary" name="add_item">Add Item</button>
 </form>
 
-{% if pr.status == 'submitted' and request.user.userprofile.role in 'admin procurement' %}
-  <form method="post" action="{% url 'procurement:pr_approve' pr.pk %}">
-    {% csrf_token %}
-    <button class="btn btn-success mt-2">Approve PR</button>
-  </form>
-{% endif %}
+<div class="mt-3">
+  {% if pr.status == 'draft' %}
+    <a href="{% url 'procurement:pr_submit' pr.pk %}" class="btn btn-success">Submit PR</a>
+  {% endif %}
+  {% if pr.status == 'submitted' and request.user.userprofile.role in ['admin','procurement'] %}
+    <a href="{% url 'procurement:pr_approve' pr.pk %}" class="btn btn-primary">Approve</a>
+  {% endif %}
+</div>
 {% endblock %}

@@ -1,29 +1,24 @@
-{% extends "procurement/base_procurement.html" %}
-{% block title %}GRN List{% endblock %}
-{% block content %}
-<h3>Goods Received (GRNs)</h3>
-<p><a class="btn btn-primary btn-sm" href="{% url 'procurement:grn_create' %}">New GRN</a></p>
 
-<table class="table table-sm table-striped">
-    <thead><tr><th>#</th><th>Supplier</th><th>Warehouse</th><th>Status</th><th>Received</th><th>Actions</th></tr></thead>
-    <tbody>
-      {% for grn in grns %}
-        <tr>
-          <td>{{ grn.pk }}</td>
-          <td>{{ grn.supplier.name }}</td>
-          <td>{{ grn.warehouse.name }}</td>
-          <td>{{ grn.get_status_display }}</td>
-          <td>{{ grn.created_at|date:"Y-m-d" }}</td>
-          <td>
-            <a class="btn btn-sm btn-outline-secondary" href="{% url 'procurement:grn_detail' grn.pk %}">View</a>
-            {% if grn.status == 'received' and request.user.userprofile.role in 'procurement admin inventory' %}
-                <a class="btn btn-sm btn-success" href="{% url 'procurement:grn_confirm' grn.pk %}">Confirm</a>
-            {% endif %}
-          </td>
-        </tr>
-      {% empty %}
-        <tr><td colspan="6">No GRNs recorded.</td></tr>
-      {% endfor %}
-    </tbody>
+
+{% extends "procurement/base_procurement.html" %}
+{% block content %}
+<h3>Goods Received</h3>
+<p><a class="btn btn-primary btn-sm" href="{% url 'procurement:grn_create' %}">Create GRN</a></p>
+<table class="table">
+  <thead><tr><th>#</th><th>Supplier</th><th>Warehouse</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for grn in grns %}
+      <tr>
+        <td>{{ grn.pk }}</td>
+        <td>{{ grn.supplier.name }}</td>
+        <td>{{ grn.warehouse.name }}</td>
+        <td>{{ grn.get_status_display }}</td>
+        <td>{{ grn.created_at|date:"Y-m-d" }}</td>
+        <td><a href="{% url 'procurement:grn_detail' grn.pk %}" class="btn btn-sm btn-outline-primary">View</a></td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="6">No GRNs yet.</td></tr>
+    {% endfor %}
+  </tbody>
 </table>
 {% endblock %}

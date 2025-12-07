@@ -14,6 +14,12 @@ urlpatterns = [
     path('prs/<int:pr_id>/submit/', views.pr_submit, name='pr_submit'),
     path('prs/<int:pr_id>/approve/', views.pr_approve, name='pr_approve'),
 
+    # Quotations
+    path('quotations/', views.quotation_list, name='quotation_list'),
+    path('quotations/create/', views.quotation_create, name='quotation_create'),
+    path('quotations/<int:q_id>/', views.quotation_detail, name='quotation_detail'),
+    path('quotations/<int:q_id>/accept/', views.quotation_accept, name='quotation_accept'),
+
     # PO
     path('pos/', views.po_list, name='po_list'),
     path('pos/create/', views.po_create, name='po_create'),
