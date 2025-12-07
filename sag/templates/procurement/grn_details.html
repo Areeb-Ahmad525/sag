@@ -1,25 +1,40 @@
-{% extends 'management_base.html' %}
+{% extends "procurement/base_procurement.html" %}
+{% block title %}GRN Detail{% endblock %}
 {% block content %}
-<h2>GRN {{ grn.grn_number }}</h2>
-<p>Supplier: {{ grn.supplier.name }} | Warehouse: {{ grn.warehouse.name }} | Status: {{ grn.get_status_display }}</p>
-
-<h4>Items</h4>
-<ul>
-  {% for it in grn.items.all %}
-    <li>{{ it.material }} — Qty: {{ it.quantity }} — PO Item: {{ it.po_item }}</li>
-  {% empty %}
-    <li>No items yet.</li>
-  {% endfor %}
-</ul>
+<h3>GRN #{{ grn.pk }} - Supplier: {{ grn.supplier.name }}</h3>
+<p>Warehouse: {{ grn.warehouse.name }} | Status: {{ grn.get_status_display }}</p>
+<p>Notes: {{ grn.notes }}</p>
 
 <hr/>
-<h4>Add item</h4>
-<form method="post">{% csrf_token %}
+<h5>Items</h5>
+<table class="table table-sm">
+  <thead><tr><th>Material</th><th>Qty</th><th>PO Item</th><th>Notes</th></tr></thead>
+  <tbody>
+    {% for it in grn.items.all %}
+      <tr>
+        <td>{{ it.material }}</td>
+        <td>{{ it.quantity }}</td>
+        <td>{% if it.po_item %}PO Item #{{ it.po_item.pk }}{% else %}-{% endif %}</td>
+        <td>{{ it.notes }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">No items.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<hr/>
+<h5>Add Item</h5>
+<form method="post">
+  {% csrf_token %}
   {{ item_form.as_p }}
-  <button type="submit" name="add_item" class="btn btn-secondary">Add Item</button>
+  <button class="btn btn-sm btn-primary" name="add_item" type="submit">Add Item</button>
 </form>
 
-{% if grn.status == 'received' %}
-  <a href="{% url 'procurement:grn_confirm' grn.id %}" class="btn btn-success">Confirm GRN (Update Inventory)</a>
+{% if grn.status == 'received' and request.user.userprofile.role in 'procurement admin inventory' %}
+  <form method="post" action="{% url 'procurement:grn_confirm' grn.pk %}">
+    {% csrf_token %}
+    <button class="btn btn-success mt-2">Confirm GRN</button>
+  </form>
 {% endif %}
 {% endblock %}

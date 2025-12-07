@@ -1,25 +1,34 @@
-{% extends 'management_base.html' %}
+{% extends "procurement/base_procurement.html" %}
+{% block title %}PO Detail{% endblock %}
 {% block content %}
-<h2>PO {{ po.po_number }}</h2>
-<p>Supplier: {{ po.supplier.name }} | Status: {{ po.get_status_display }}</p>
-
-<h4>Items</h4>
-<ul>
-  {% for it in po.items.all %}
-    <li>{{ it.material }} — Qty: {{ it.quantity }} — Received: {{ it.received_quantity }}</li>
-  {% empty %}
-    <li>No items yet.</li>
-  {% endfor %}
-</ul>
+<h3>PO #{{ po.pk }} - Supplier: {{ po.supplier.name }}</h3>
+<p>Status: <strong>{{ po.get_status_display }}</strong></p>
+<p>Expected delivery: {{ po.expected_delivery }}</p>
+<p>{{ po.notes }}</p>
 
 <hr/>
-<h4>Add item</h4>
-<form method="post">{% csrf_token %}
-  {{ item_form.as_p }}
-  <button type="submit" name="add_item" class="btn btn-secondary">Add Item</button>
-</form>
+<h5>Items</h5>
+<table class="table table-sm">
+  <thead><tr><th>Material</th><th>Qty</th><th>Unit Price</th><th>Received</th></tr></thead>
+  <tbody>
+    {% for it in po.items.all %}
+      <tr>
+        <td>{{ it.material }}</td>
+        <td>{{ it.quantity }}</td>
+        <td>{{ it.unit_price }}</td>
+        <td>{{ it.received_quantity }}</td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="4">No items.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
 
-{% if po.status == 'draft' %}
-  <a href="{% url 'procurement:po_send' po.id %}" class="btn btn-success">Mark Sent</a>
-{% endif %}
+<hr/>
+<h5>Add Item</h5>
+<form method="post">
+  {% csrf_token %}
+  {{ item_form.as_p }}
+  <button class="btn btn-sm btn-primary" name="add_item" type="submit">Add Item</button>
+</form>
 {% endblock %}

@@ -1,3 +1,4 @@
+# procurement/urls.py
 from django.urls import path
 from . import views
 
@@ -5,6 +6,7 @@ app_name = 'procurement'
 
 urlpatterns = [
     path('', views.procurement_index, name='procurement_index'),
+
     # PR
     path('prs/', views.pr_list, name='pr_list'),
     path('prs/create/', views.pr_create, name='pr_create'),

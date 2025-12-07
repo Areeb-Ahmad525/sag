@@ -1,7 +1,9 @@
+# procurement/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
+
 from users.decorators import role_required
 
 from .models import (
@@ -16,19 +18,28 @@ from .forms import (
 )
 from inventory.models import InventoryBatch, StockMovement, RawMaterial
 
-
 @login_required
-@role_required(['procurement', 'admin'])
+@role_required(['procurement','admin','hr'])
 def procurement_index(request):
-    return render(request, 'procurement/procurement_index.html')
+    # dashboard cards
+    total_prs = PurchaseRequest.objects.count()
+    total_pos = PurchaseOrder.objects.count()
+    total_grns = GoodsReceived.objects.count()
+    context = {
+        'total_prs': total_prs,
+        'total_pos': total_pos,
+        'total_grns': total_grns,
+    }
+    return render(request, 'procurement/procurement_index.html', context)
 
 
 # ---------- Purchase Requests ----------
 @login_required
-@role_required(['procurement','admin','hr'])
+@role_required(['procurement','admin'])
 def pr_list(request):
     prs = PurchaseRequest.objects.all().order_by('-created_at')
     return render(request, 'procurement/pr_list.html', {'prs': prs})
+
 
 @login_required
 @role_required(['procurement','admin'])
@@ -45,6 +56,7 @@ def pr_create(request):
         form = PurchaseRequestForm()
     return render(request, 'procurement/pr_form.html', {'form': form})
 
+
 @login_required
 @role_required(['procurement','admin'])
 def pr_detail(request, pr_id):
@@ -60,6 +72,7 @@ def pr_detail(request, pr_id):
             return redirect('procurement:pr_detail', pr_id=pr.id)
     return render(request, 'procurement/pr_detail.html', {'pr': pr, 'item_form': item_form})
 
+
 @login_required
 @role_required(['procurement','admin'])
 def pr_submit(request, pr_id):
@@ -71,6 +84,7 @@ def pr_submit(request, pr_id):
         pr.save()
         messages.success(request, "PR submitted for approval.")
     return redirect('procurement:pr_detail', pr_id=pr.id)
+
 
 @login_required
 @role_required(['admin','procurement'])
@@ -92,6 +106,7 @@ def po_list(request):
     pos = PurchaseOrder.objects.all().order_by('-created_at')
     return render(request, 'procurement/po_list.html', {'pos': pos})
 
+
 @login_required
 @role_required(['procurement','admin'])
 def po_create(request):
@@ -107,6 +122,7 @@ def po_create(request):
         form = PurchaseOrderForm()
     return render(request, 'procurement/po_form.html', {'form': form})
 
+
 @login_required
 @role_required(['procurement','admin'])
 def po_detail(request, po_id):
@@ -121,6 +137,7 @@ def po_detail(request, po_id):
             messages.success(request, "Item added to PO.")
             return redirect('procurement:po_detail', po_id=po.id)
     return render(request, 'procurement/po_detail.html', {'po': po, 'item_form': item_form})
+
 
 @login_required
 @role_required(['procurement','admin'])
@@ -142,6 +159,7 @@ def grn_list(request):
     grns = GoodsReceived.objects.all().order_by('-created_at')
     return render(request, 'procurement/grn_list.html', {'grns': grns})
 
+
 @login_required
 @role_required(['procurement','admin'])
 def grn_create(request):
@@ -157,6 +175,7 @@ def grn_create(request):
         form = GoodsReceivedForm()
     return render(request, 'procurement/grn_form.html', {'form': form})
 
+
 @login_required
 @role_required(['procurement','admin'])
 def grn_detail(request, grn_id):
@@ -171,6 +190,7 @@ def grn_detail(request, grn_id):
             messages.success(request, "Item added to GRN.")
             return redirect('procurement:grn_detail', grn_id=grn.id)
     return render(request, 'procurement/grn_detail.html', {'grn': grn, 'item_form': item_form})
+
 
 @login_required
 @role_required(['procurement','admin'])
@@ -203,7 +223,7 @@ def grn_confirm(request, grn_id):
             movement_type = 'IN'
         )
 
-        # Update material current_stock (sum of batches is preferred, but quick update here)
+        # Update material current_stock (quick update here)
         item.material.current_stock = (item.material.current_stock or 0) + item.quantity
         item.material.save()
 
