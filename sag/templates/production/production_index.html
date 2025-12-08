@@ -1,0 +1,16 @@
+{% extends "management_base.html" %}
+{% load static %}
+{% block content %}
+<h2>Production Dashboard</h2>
+<div class="row mt-3">
+  <div class="col-md-4"><div class="card p-3">Total WOs: {{ total_wos }}</div></div>
+  <div class="col-md-4"><div class="card p-3">Running: {{ running }}</div></div>
+  <div class="col-md-4"><div class="card p-3">Completed: {{ completed }}</div></div>
+</div>
+
+<hr>
+<p>
+  <a class="btn btn-primary" href="{% url 'production:wo_list' %}">Work Orders</a>
+  <a class="btn btn-secondary" href="{% url 'production:wo_create' %}">Create Work Order</a>
+</p>
+{% endblock %}

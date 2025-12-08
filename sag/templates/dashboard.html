@@ -224,11 +224,11 @@
         <!-- SIDEBAR -->
         <div class="sidebar">
             <a href="#">Dashboard</a>
-            <a href="#">Employees</a>
+            <a href="{% url 'procurement:procurement_index' %}">Procurement</a>
             <a href="/inventory">Inventory</a>
+            <a href="{% url 'production:production_index' %}" class="nav-link"><span class="icon">🏭</span><span>Production</span></a>
             <a href="#">Sales</a>
             <a href="#">Purchase</a>
-            <a href="#">Production</a>
             <a href="#">Projects</a>
             <a href="#">QC</a>
             <a href="#">Delivery</a>

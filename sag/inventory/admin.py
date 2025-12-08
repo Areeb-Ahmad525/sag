@@ -4,7 +4,8 @@ from .models import (
     Warehouse,
     RawMaterial,
     InventoryBatch,
-    StockMovement
+    StockMovement,
+    Product
 )
 
 # --- 1. Supplier Admin ---
@@ -55,3 +56,8 @@ class StockMovementAdmin(admin.ModelAdmin):
     list_filter = ('movement_type', 'created_at', 'from_warehouse', 'to_warehouse')
     search_fields = ('batch__material__type_name',)
     date_hierarchy = 'created_at'
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ("name", "category", "size", "color")
+    search_fields = ("name", "category")

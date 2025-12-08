@@ -1,0 +1,27 @@
+{% extends 'inventory/base_inventory.html' %}
+
+{% block title %}Material List{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Raw Material List</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Unit</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for m in materials %}
+        <tr>
+            <td>{{ m.name }}</td>
+            <td>{{ m.category }}</td>
+            <td>{{ m.unit }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

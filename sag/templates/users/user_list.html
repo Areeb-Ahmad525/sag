@@ -1,35 +1,46 @@
+{% extends 'base.html' %}
 {% load static %}
-<table border="1" cellpadding="10">
+{% block content %}
+<h2>User List</h2>
+<table border="1" cellpadding="6" cellspacing="0">
+  <thead>
     <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Phone</th>
-        <th>Picture</th>
-        <th>Status</th>
-        <th>Action</th>
+      <th>Photo</th>
+      <th>Name</th>
+      <th>Email</th>
+      <th>Phone</th>
+      <th>Role</th>
+      <th>Status</th>
+      <th>Actions</th>
     </tr>
-    {% for user in users %}
+  </thead>
+  <tbody>
+    {% for p in users %}
     <tr>
-        <td>{{ user.name }}</td>
-        <td>{{ user.user.email }}</td>
-        <td>{{ user.phone }}</td>
-        <td>
-            {% if user.profile_picture %}
-                <img src="{{ user.profile_picture.url }}" width="50" height="50" />
-            {% else %}
-                No Image
-            {% endif %}
-        </td>
-        <td>{{ user.status|capfirst }}</td>
-        <td>
-            <a href="{% url 'toggle_user_status' user.user.id %}">
-                {% if user.status == 'active' %}
-                    Deactivate
-                {% else %}
-                    Activate
-                {% endif %}
-            </a>
-        </td>
+      <td>
+        {% if p.profile_picture %}
+          <img src="{{ p.profile_picture.url }}" alt="pic" width="40" height="40"/>
+        {% else %}
+          <img src="{% static 'images/default_profile.jpg' %}" alt="default" width="40" height="40"/>
+        {% endif %}
+      </td>
+      <td>{{ p.name }}</td>
+      <td>{{ p.user.email }}</td>
+      <td>{{ p.phone }}</td>
+      <td>{{ p.get_role_display }}</td>
+      <td>{{ p.status }}</td>
+      <td>
+        {% if request.user.is_authenticated and request.user.userprofile.role in ['hr','admin'] %}
+          <a href="{% url 'toggle_user_status' p.user.id %}">
+            {% if p.status == 'active' %}Deactivate{% else %}Activate{% endif %}
+          </a> |
+          <a href="{% url 'edit_profile' %}">Edit</a>
+        {% else %}
+          -
+        {% endif %}
+      </td>
     </tr>
     {% endfor %}
+  </tbody>
 </table>
+{% endblock %}

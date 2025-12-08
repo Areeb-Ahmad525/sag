@@ -1,0 +1,25 @@
+{% extends 'inventory/base_inventory.html' %}
+
+{% block title %}Warehouse List{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Warehouse List</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Location</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for w in warehouses %}
+        <tr>
+            <td>{{ w.name }}</td>
+            <td>{{ w.location }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

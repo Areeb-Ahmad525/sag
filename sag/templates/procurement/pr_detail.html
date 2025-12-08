@@ -1,0 +1,35 @@
+
+
+{% extends "procurement/base_procurement.html" %}
+{% block content %}
+<h3>PR #{{ pr.pk }} — {{ pr.title }}</h3>
+<p>Status: <strong>{{ pr.get_status_display }}</strong></p>
+<p>{{ pr.description }}</p>
+
+<h5>Items</h5>
+<table class="table">
+  <thead><tr><th>Material</th><th>Qty</th><th>Requested Date</th></tr></thead>
+  <tbody>
+    {% for it in pr.items.all %}
+      <tr><td>{{ it.material }}</td><td>{{ it.quantity }}</td><td>{{ it.requested_date }}</td></tr>
+    {% empty %}
+      <tr><td colspan="3">No items.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h6>Add Item</h6>
+<form method="post">{% csrf_token %}
+  {{ item_form.as_p }}
+  <button class="btn btn-sm btn-primary" name="add_item">Add Item</button>
+</form>
+
+<div class="mt-3">
+  {% if pr.status == 'draft' %}
+    <a href="{% url 'procurement:pr_submit' pr.pk %}" class="btn btn-success">Submit PR</a>
+  {% endif %}
+  {% if pr.status == 'submitted' and request.user.userprofile.role in ['admin','procurement'] %}
+    <a href="{% url 'procurement:pr_approve' pr.pk %}" class="btn btn-primary">Approve</a>
+  {% endif %}
+</div>
+{% endblock %}

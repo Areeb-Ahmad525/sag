@@ -1,0 +1,95 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Dashboard — Saud Aluminium{% endblock %}</title>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
+    <style>
+
+        :root { --sidebar-width: 260px; }
+
+        body { background:#f4f7fa; }
+
+        /* MAIN SIDEBAR (ONLY MODULE BUTTONS) */
+        #main-sidebar {
+            width: var(--sidebar-width);
+            min-height: 100vh;
+            background: #141135;
+            color: #fff;
+            position: fixed;
+            left: 0;
+            top: 0;
+            padding: 18px 12px;
+        }
+
+        #main-sidebar .brand { text-align:center; }
+        #main-sidebar .brand img { width:80px; border-radius:50%; }
+
+        #main-sidebar .nav-link {
+            color: #ffffffcc;
+            margin-bottom: 6px;
+            padding: 8px 12px;
+            border-radius: 6px;
+        }
+        #main-sidebar .nav-link:hover,
+        #main-sidebar .nav-link.active {
+            background:#3f5fea;
+            color:white;
+        }
+
+        /* MAIN CONTENT WRAPPER */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            padding: 24px;
+        }
+
+    </style>
+</head>
+
+<body>
+
+<div id="main-sidebar">
+    <div class="brand mb-3">
+        <img src="{% static 'images/logo.jpg' %}">
+        <h5 class="mt-2">Saud Aluminium</h5>
+    </div>
+
+    <nav class="nav flex-column">
+
+        <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+           href="{% url 'dashboard' %}">
+            Dashboard
+        </a>
+
+        <a class="nav-link" href="{% url 'inventory_index' %}">
+            Inventory
+        </a>
+
+        <a class="nav-link {% if request.resolver_match.url_name == 'procurement_index' %}active{% endif %}"
+        href="{% url 'procurement_index' %}">
+        <i class="fa-solid fa-file-invoice"></i> Procurement
+        </a>
+
+        <a class="nav-link disabled">Production (coming soon)</a>
+        <a class="nav-link disabled">Sales (coming soon)</a>
+        <a class="nav-link disabled">HR (coming soon)</a>
+        <a class="nav-link disabled">Accounts (coming soon)</a>
+
+    </nav>
+</div>
+
+
+<div class="main-wrapper">
+
+    {% block content %}
+    {% endblock %}
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

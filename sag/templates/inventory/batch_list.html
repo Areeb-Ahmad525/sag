@@ -1,0 +1,29 @@
+{% extends 'inventory/base_inventory.html' %}
+
+{% block title %}Batch List{% endblock %}
+
+{% block content %}
+<h2 class="mb-4">Batch List</h2>
+
+<table class="table table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>Material</th>
+            <th>Warehouse</th>
+            <th>Quantity</th>
+            <th>Arrival Date</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for b in batches %}
+        <tr>
+            <td>{{ b.material.name }}</td>
+            <td>{{ b.warehouse.name }}</td>
+            <td>{{ b.quantity }}</td>
+            <td>{{ b.arrival_date }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

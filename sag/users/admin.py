@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import UserProfile
+from .models import UserProfile,LoginActivity
 from django.utils.html import format_html
 
 @admin.register(UserProfile)
@@ -17,3 +17,9 @@ class UserProfileAdmin(admin.ModelAdmin):
             return format_html('<img src="{}" width="50" />', obj.profile_picture.url)
         return "-"
     profile_image.short_description = 'Profile Picture'
+
+@admin.register(LoginActivity)
+class LoginActivityAdmin(admin.ModelAdmin):
+    list_display = ('user', 'status', 'login_time', 'logout_time', 'ip_address')
+    search_fields = ('user__email', 'ip_address')
+    list_filter = ('status',)
