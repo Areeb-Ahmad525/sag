@@ -1,0 +1,94 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="header-buttons-container">
+    <div class="header-buttons">
+
+        <a href="{% url 'supplier_list' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'supplier_list' %}active{% endif %}">
+            Suppliers
+        </a>
+
+        <a href="{% url 'warehouse_list' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'warehouse_list' %}active{% endif %}">
+            Warehouses
+        </a>
+
+        <a href="{% url 'material_list' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'material_list' %}active{% endif %}">
+            Raw Material
+        </a>
+
+        <a href="{% url 'movement_list' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'movement_list' %}active{% endif %}">
+            Stock Movement
+        </a>
+
+        <a href="{% url 'batch_list' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'batch_list' %}active{% endif %}">
+            Inventory Batch
+        </a>
+
+    </div>
+    <div class="header-underline"></div>
+</div>
+
+<div class="child-content" id="child-content">
+    {% block inventory_child %}
+    {% endblock %}
+</div>
+
+<style>
+/* Header buttons container */
+.header-buttons-container {
+    padding: 15px 20px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #e0e0e0;
+}
+.header-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.header-btn {
+    padding: 8px 20px;
+    border: 2px solid #007bff;
+    border-radius: 50px;
+    background-color: transparent;
+    color: #007bff;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none; /* keep anchor looking like button */
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+.header-btn.active {
+    background-color: #007bff;
+    color: #fff;
+}
+.header-btn:hover {
+    background-color: #007bff10;
+}
+.header-underline {
+    margin-top: 10px;
+    height: 2px;
+    background-color: #e0e0e0;
+    width: 100%;
+}
+.child-content {
+    padding: 0;
+    margin-left: 0;
+}
+@media (max-width: 768px) {
+    .header-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+</style>
+
+{% endblock content %}

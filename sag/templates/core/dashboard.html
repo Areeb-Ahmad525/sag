@@ -1,0 +1,73 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/dashboard_styling.css' %}">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aluminium & Glass Dashboard</title>
+</head>
+
+<body>
+
+    <!-- NAVIGATION BAR -->
+        <div class="navbar">
+            <div class="hamburger">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+
+            Saud Aluminium and Glass
+
+            <!-- USER PROFILE DROPDOWN -->
+            <div class="user-dropdown">
+                <span class="username">{{ request.user.userprofile.name }}</span>
+                <img src="{% if request.user.userprofile.profile_picture %}{{ request.user.userprofile.profile_picture.url }}{% else %}{% static 'default_profile.jpg' %}{% endif %}" alt="Profile Picture" class="user-pic">
+                <div class="dropdown-content">
+                    <a href="{% url 'edit_profile' %}">Edit Profile</a>
+                    <a href="{% url 'logout' %}">Logout</a>
+                </div>
+            </div>
+        </div>
+
+
+    <div class="container">
+
+        <!-- SIDEBAR -->
+        <div class="sidebar">
+            <a href="{% url 'dashboard' %}">Dashboard</a>
+            <a href="{% url 'procurement:procurement_index' %}">Procurement</a>
+            <a href="/inventory">Inventory</a>
+            <a href="{% url 'production:production_index' %}">Production</a>
+            <a href="#">Sales</a>
+            <a href="#">Purchase</a>
+            <a href="#">Projects</a>
+            <a href="#">QC</a>
+            <a href="#">Delivery</a>
+            <a href="#">Installation</a>
+            <a href="#">Finance</a>
+            <a href="#">Reports</a>
+            <a href="#">Settings</a>
+        </div>
+
+        <div class="main">
+            {% block content %}
+            
+            {% endblock content %}
+        </div>
+
+
+    </div>
+
+</body>
+<script>
+    const hamburger = document.querySelector('.hamburger');
+    const sidebar = document.querySelector('.sidebar');
+
+    hamburger.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+</script>
+
+</html>

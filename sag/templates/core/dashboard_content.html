@@ -1,0 +1,78 @@
+{% extends 'core/dashboard.html' %}
+
+{% block content %}
+
+<!-- KPI CARDS -->
+<div class="kpi-section">
+    <div class="kpi-card">
+        <div class="kpi-title">Total Sales</div>
+        <div class="kpi-value">PKR 0</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Total Projects</div>
+        <div class="kpi-value">0</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Total Employees</div>
+        <div class="kpi-value">0</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-title">Active Machines</div>
+        <div class="kpi-value">0</div>
+    </div>
+</div>
+
+<!-- CHARTS -->
+<div class="chart-box">
+    <div class="chart-title">Sales Over Time</div>
+    <div class="chart-placeholder"></div>
+</div>
+
+<div class="chart-box">
+    <div class="chart-title">Project Status</div>
+    <div class="chart-placeholder"></div>
+</div>
+
+<div class="chart-box">
+    <div class="chart-title">Inventory Consumption</div>
+    <div class="chart-placeholder"></div>
+</div>
+
+<!-- TABLES -->
+<div class="table-box">
+    <h3>Latest Employees</h3>
+    <table>
+        <tr>
+            <th>Name</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Hire Date</th>
+        </tr>
+        <tr>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+    </table>
+</div>
+
+<div class="table-box">
+    <h3>Recent Sales Orders</h3>
+    <table>
+        <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Status</th>
+            <th>Total Amount</th>
+        </tr>
+        <tr>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+            <td>—</td>
+        </tr>
+    </table>
+</div>
+
+{% endblock content %}

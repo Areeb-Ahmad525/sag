@@ -1,29 +1,55 @@
-{% extends 'inventory/base_inventory.html' %}
+{% extends 'inventory/inventory_base.html' %}
+{% load static %}
 
-{% block title %}Supplier List{% endblock %}
+{% block inventory_child %}
 
-{% block content %}
-<h2 class="mb-4">Supplier List</h2>
+<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Contact Person</th>
-            <th>Phone</th>
-            <th>Email</th>
-        </tr>
-    </thead>
+<div class="wrapper">
+    <div class="header">
+        <h2>Supplier List</h2>
+        <a href="/inventory/suppliers/create/" class="btn-add">
+            <span class="plus-icon">+</span> Add Supplier
+        </a>
+    </div>
 
-    <tbody>
-        {% for s in suppliers %}
-        <tr>
-            <td>{{ s.name }}</td>
-            <td>{{ s.contact_person }}</td>
-            <td>{{ s.phone_number }}</td>
-            <td>{{ s.email }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Contact Person</th>
+                    <th>Phone</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for s in suppliers %}
+                <tr>
+                    <td>{{ s.name }}</td>
+                    <td>{{ s.contact_person }}</td>
+                    <td>{{ s.phone_number }}</td>
+                    <td>{{ s.email }}</td>
+                    <td class="actions">
+                        <a href="#" class="edit-btn" title="Edit">
+                            <i class="fa fa-pencil"></i>
+                        </a>
+                        <a href="#" class="delete-btn" title="Delete">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
+    </div>
+</div>
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 {% endblock %}

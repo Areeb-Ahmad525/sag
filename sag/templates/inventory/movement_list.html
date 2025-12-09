@@ -1,31 +1,66 @@
-{% extends 'inventory/base_inventory.html' %}
+{% extends 'inventory/inventory_base.html' %}
+{% load static %}
 
-{% block title %}Movement List{% endblock %}
+{% block inventory_child %}
 
-{% block content %}
-<h2 class="mb-4">Stock Movement List</h2>
+<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<div class="wrapper">
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Material</th>
-            <th>Warehouse</th>
-            <th>Movement Type</th>
-            <th>Quantity</th>
-            <th>Date</th>
-        </tr>
-    </thead>
+    <!-- Header Section -->
+    <div class="header">
+        <h2>Stock Movement List</h2>
 
-    <tbody>
-        {% for m in movements %}
-        <tr>
-            <td>{{ m.material.name }}</td>
-            <td>{{ m.warehouse.name }}</td>
-            <td>{{ m.movement_type }}</td>
-            <td>{{ m.quantity }}</td>
-            <td>{{ m.date }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+        <a href="/inventory/movements/create/" class="btn-add">
+            <span class="plus-icon">+</span> Add Movement
+        </a>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Batch</th>
+                    <th>From Warehouse</th>
+                    <th>Movement Type</th>
+                    <th>Quantity</th>
+                    <th>Date</th>
+                    <th>Created by</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for m in movements %}
+                <tr>
+                    <td>{{ m.batch }}</td>
+                    <td>{{ m.from_warehouse }}</td>
+                    <td>{{ m.movement_type }}</td>
+                    <td>{{ m.qty }}</td>
+                    <td>{{ m.created_at }}</td>
+                    <td>{{ m.created_by }}</td>
+
+
+                    <td class="actions">
+                        <a href="/inventory/movements/edit/{{ m.id }}/" class="edit-btn" title="Edit">
+                            <i class="fa fa-pencil"></i>
+                        </a>
+
+                        <a href="/inventory/movements/delete/{{ m.id }}/" class="delete-btn" title="Delete">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- FontAwesome Icons -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 {% endblock %}

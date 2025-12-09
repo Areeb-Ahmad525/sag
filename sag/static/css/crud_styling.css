@@ -1,0 +1,96 @@
+
+.wrapper {
+    width: 100%;
+    max-width: 100%;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+/* Header with Add button */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+.btn-add {
+    background-color: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 8px 15px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    transition: background 0.3s ease;
+}
+
+.btn-add .plus-icon {
+    font-weight: bold;
+    font-size: 18px;
+    margin-right: 5px;
+}
+
+.btn-add:hover {
+    background-color: #218838;
+}
+
+/* Table container */
+.table-container {
+    overflow-x: auto;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.data-table th, .data-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.data-table th {
+    background-color: #1f262c;
+    font-weight: 600;
+}
+
+.actions button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    margin-right: 8px;
+    font-size: 16px;
+    text-decoration: none;
+}
+
+.actions .edit-btn {
+    color: #007bff;
+}
+
+.actions .delete-btn {
+    color: #dc3545;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .data-table {
+        font-size: 14px;
+    }
+    .actions button {
+        margin-right: 3px;
+        font-size: 14px;
+    }
+}
+

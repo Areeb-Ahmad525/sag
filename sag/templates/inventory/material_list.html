@@ -1,27 +1,71 @@
-{% extends 'inventory/base_inventory.html' %}
+{% extends 'inventory/inventory_base.html' %}
+{% load static %}
 
-{% block title %}Material List{% endblock %}
+{% block inventory_child %}
 
-{% block content %}
-<h2 class="mb-4">Raw Material List</h2>
+<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Category</th>
-            <th>Unit</th>
-        </tr>
-    </thead>
+<div class="wrapper">
 
-    <tbody>
-        {% for m in materials %}
-        <tr>
-            <td>{{ m.name }}</td>
-            <td>{{ m.category }}</td>
-            <td>{{ m.unit }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- Header Section -->
+    <div class="header">
+        <h2>Raw Material List</h2>
+
+        <a href="/inventory/materials/create/" class="btn-add">
+            <span class="plus-icon">+</span> Add Material
+        </a>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Category</th>
+                    <th>Unit</th>
+                    <th>Size</th>
+                    <th>Thickness</th>
+                    <th>Colour</th>
+                    <th>Reorder Level</th>
+                    <th>Supplier</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for m in materials %}
+                <tr>
+                    <td>{{ m.type_name }}</td>
+                    <td>{{ m.category }}</td>
+                    <td>{{ m.unit }}</td>
+                    <td>{{ m.size }}</td>
+                    <td>{{ m.thickness }}</td>
+                    <td>{{ m.colour }}</td>
+                    <td>{{ m.reorder_level }}</td>
+                    <td>{{ m.supplier }}</td>
+                    
+
+                    <td class="actions">
+                        <a href="/inventory/materials/edit/{{ m.id }}/" class="edit-btn" title="Edit">
+                            <i class="fa fa-pencil"></i>
+                        </a>
+
+                        <a href="/inventory/materials/delete/{{ m.id }}/" class="delete-btn" title="Delete">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- FontAwesome Icons -->
+<link rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 {% endblock %}

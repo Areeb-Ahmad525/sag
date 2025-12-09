@@ -1,25 +1,58 @@
-{% extends 'inventory/base_inventory.html' %}
+{% extends 'inventory/inventory_base.html' %}
+{% load static %}
 
-{% block title %}Warehouse List{% endblock %}
+{% block inventory_child %}
 
-{% block content %}
-<h2 class="mb-4">Warehouse List</h2>
+<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Name</th>
-            <th>Location</th>
-        </tr>
-    </thead>
+<div class="wrapper">
 
-    <tbody>
-        {% for w in warehouses %}
-        <tr>
-            <td>{{ w.name }}</td>
-            <td>{{ w.location }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- Header Section -->
+    <div class="header">
+        <h2>Warehouse List</h2>
+
+        <a href="/inventory/warehouses/create/" class="btn-add">
+            <span class="plus-icon">+</span> Add Warehouse
+        </a>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Location</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for w in warehouses %}
+                <tr>
+                    <td>{{ w.name }}</td>
+                    <td>{{ w.location }}</td>
+
+                    <td class="actions">
+                        <a href="/inventory/warehouses/edit/{{ w.id }}/" class="edit-btn" title="Edit">
+                            <i class="fa fa-pencil"></i>
+                        </a>
+
+                        <a href="/inventory/warehouses/delete/{{ w.id }}/" class="delete-btn" title="Delete">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+
+<link rel="stylesheet" 
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 {% endblock %}

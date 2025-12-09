@@ -26,7 +26,7 @@ def inventory_index(request):
         'batches_count': batches.count(),
         'low_stock': low_stock,
     }
-    return render(request, 'inventory/inventory_index.html', context)
+    return render(request, 'inventory/inventory_stats.html', context)
 
 
 # LIST VIEWS

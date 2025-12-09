@@ -1,29 +1,62 @@
-{% extends 'inventory/base_inventory.html' %}
+{% extends 'inventory/inventory_base.html' %}
+{% load static %}
 
-{% block title %}Batch List{% endblock %}
+{% block inventory_child %}
 
-{% block content %}
-<h2 class="mb-4">Batch List</h2>
+<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<table class="table table-bordered table-striped">
-    <thead>
-        <tr>
-            <th>Material</th>
-            <th>Warehouse</th>
-            <th>Quantity</th>
-            <th>Arrival Date</th>
-        </tr>
-    </thead>
+<div class="wrapper">
 
-    <tbody>
-        {% for b in batches %}
-        <tr>
-            <td>{{ b.material.name }}</td>
-            <td>{{ b.warehouse.name }}</td>
-            <td>{{ b.quantity }}</td>
-            <td>{{ b.arrival_date }}</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <!-- Header Section -->
+    <div class="header">
+        <h2>Batch List</h2>
+
+        <a href="/inventory/batches/create/" class="btn-add">
+            <span class="plus-icon">+</span> Add Batch
+        </a>
+    </div>
+
+    <!-- Table Section -->
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Warehouse</th>
+                    <th>Quantity</th>
+                    <th>Arrival Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for b in batches %}
+                <tr>
+                    <td>{{ b.material }}</td>
+                    <td>{{ b.warehouse.name }}</td>
+                    <td>{{ b.qty_available }}</td>
+                    <td>{{ b.received_date }}</td>
+
+                    <td class="actions">
+                        <a href="/inventory/batches/edit/{{ b.id }}/" class="edit-btn" title="Edit">
+                            <i class="fa fa-pencil"></i>
+                        </a>
+
+                        <a href="/inventory/batches/delete/{{ b.id }}/" class="delete-btn" title="Delete">
+                            <i class="fa fa-trash"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+<!-- FontAwesome Icons -->
+<link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 {% endblock %}
