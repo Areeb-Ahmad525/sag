@@ -1,9 +1,10 @@
-from datetime import timezone
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+from django.views.decorators.http import require_POST
 
 from users.decorators import role_required
 from inventory.models import Product,InventoryBatch, StockMovement, RawMaterial, Warehouse
@@ -127,29 +128,35 @@ def wo_detail(request, wo_id):
     }
     return render(request, 'production/wo_detail.html', context)
 
-# Quick endpoints to change WO status
 @login_required
 @role_required(['production','admin'])
+@require_POST
 def wo_start(request, wo_id):
     wo = get_object_or_404(WorkOrder, pk=wo_id)
+
     if wo.status == 'planned':
         wo.status = 'in_progress'
-        wo.start_date = timezone.now().date()
+        wo.start_date = timezone.now().date()  # ✔ now works
         wo.save()
         messages.success(request, "Work order started.")
     else:
         messages.warning(request, "Work order not in planned state.")
+
     return redirect('production:wo_detail', wo_id=wo.id)
+
 
 @login_required
 @role_required(['production','admin'])
+@require_POST
 def wo_complete(request, wo_id):
     wo = get_object_or_404(WorkOrder, pk=wo_id)
-    if wo.status in ['in_progress','planned']:
+
+    if wo.status == 'in_progress':
         wo.status = 'completed'
-        wo.end_date = timezone.now().date()
+        wo.end_date = timezone.now().date()   # ✔ now works
         wo.save()
         messages.success(request, "Work order marked as completed.")
     else:
         messages.warning(request, "Work order cannot be completed from current state.")
+
     return redirect('production:wo_detail', wo_id=wo.id)

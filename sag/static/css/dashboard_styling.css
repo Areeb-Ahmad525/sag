@@ -12,33 +12,53 @@ a {
 
 /* ---------- NAVBAR ---------- */
 .navbar {
-    width: 100%;
-    height: 60px;
-    background: #1e272e;
-    color: white;
+    width: 100vw; /* use viewport width */
+    box-sizing: border-box;
+    
+    height: 64px;                         /* Slightly taller, modern feel */
+    background: #1f2937;                  /* Softer modern dark blue/gray */
+    color: #fff;
+    
     display: flex;
     align-items: center;
     justify-content: space-between;
-    font-size: 22px;
-    font-weight: bold;
+
+    font-size: 20px;
+    font-weight: 600;
+
     position: fixed;
     top: 0;
     left: 0;
     z-index: 1000;
-    padding: 0 20px;
+
+    padding: 0 28px;                      /* Better spacing */
+
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);  /* Modern depth */
+    backdrop-filter: blur(6px);              /* Frosted effect */
 }
 
+/* ---------- BRAND NAME ---------- */
+.navbar .brand-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    color: #f1f5f9;
+}
+
+/* ---------- HAMBURGER MENU ---------- */
 .hamburger {
     display: none;
     flex-direction: column;
+    gap: 6px;
     cursor: pointer;
-    gap: 5px;
 }
 
 .hamburger div {
-    width: 25px;
+    width: 28px;
     height: 3px;
-    background: white;
+    background: #fff;
+    border-radius: 2px;
+    transition: 0.3s ease;
 }
 
 /* ---------- USER DROPDOWN ---------- */
@@ -47,50 +67,77 @@ a {
     align-items: center;
     cursor: pointer;
     position: relative;
-}
-
-.user-pic {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    object-fit: cover;
-    margin-right: 4rem;
-    border: 2px solid #fff;
+    gap: 12px;                                   /* Better spacing */
 }
 
 .username {
-    color: white;
-    font-weight: bold;
+    color: #e5e7eb;
+    font-weight: 600;
+    font-size: 16px;
+    white-space: nowrap;
 }
 
+/* Profile Pic */
+.user-pic {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(255,255,255,0.8);
+    margin-right: 20px;                             /* Remove ugly 4rem gap */
+    transition: 0.2s ease;
+}
+
+.user-pic:hover {
+    transform: scale(1.05);
+}
+
+/* Dropdown Box */
 .dropdown-content {
     display: none;
     position: absolute;
     top: 50px;
     right: 0;
-    background-color: #2f3640;
-    min-width: 150px;
-    box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
-    border-radius: 5px;
-    z-index: 100;
+
+    background: #111827;
+    border: 1px solid #374151;
+
+    min-width: 160px;
+
+    box-shadow: 0px 4px 18px rgba(0,0,0,0.25);
+    border-radius: 8px;
+    
+    padding: 6px 0;
+
+    z-index: 2000;
     flex-direction: column;
+
+    animation: fadeIn 0.15s ease-out;
 }
 
+/* Dropdown Links */
 .dropdown-content a {
-    color: white;
-    padding: 10px 15px;
+    padding: 12px 18px;
+    color: #e5e7eb;
     text-decoration: none;
-    display: block;
+    font-size: 15px;
+    transition: background 0.2s ease, padding-left 0.2s ease;
 }
 
 .dropdown-content a:hover {
-    background-color: #353b48;
+    background: #1f2937;
+    padding-left: 24px;
 }
 
-.user-dropdown:hover .dropdown-content {
+.user-dropdown.active .dropdown-content {
     display: flex;
 }
 
+/* Fade animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-5px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
 /* ---------- LAYOUT ---------- */
 .container {
     display: flex;
@@ -99,35 +146,66 @@ a {
 
 /* ---------- SIDEBAR ---------- */
 .sidebar {
-    width: 230px;
-    background: #2f3640;
-    height: 100vh;
+    width: 240px;
+    background: #141135;
+    height: calc(100vh - 60px); 
     position: fixed;
     top: 60px;
     left: 0;
-    padding-top: 20px;
+    padding: 15px 0;
     color: white;
+    overflow-y: auto;             
+    scrollbar-width: thin;
+    scrollbar-color: #555 #2f3640;
     transition: transform 0.3s ease;
 }
 
+/* Custom scrollbar for Chrome */
+.sidebar::-webkit-scrollbar {
+    width: 6px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #3f5fea;
+    border-radius: 10px;
+}
+
+/* Sidebar Links */
 .sidebar a {
     display: block;
-    padding: 14px 20px;
+    padding: 14px 24px;           
+    margin: 4px 10px;            
     color: #dcdde1;
-    font-size: 15px;
+    font-size: 14px;
+    border-radius: 6px;          
+    transition: background 0.2s ease, padding-left 0.2s ease;
 }
 
 .sidebar a:hover {
-    background: #353b48;
+    background: #3f5fea;
     color: #fff;
+    padding-left: 30px;           
 }
 
+/* ACTIVE MENU ITEM */
+.sidebar a.active {
+    background: #3f5fea;          
+    color: #fff;
+    font-weight: bold;
+    
+}
 /* ---------- MAIN CONTENT ---------- */
 .main {
     margin-left: 230px;
-    padding: 20px;
+    padding: 30px;
     width: calc(100% - 230px);
     transition: margin-left 0.3s ease;
+    box-sizing: border-box;
+}
+.wrapper {
+    width: 100%;
+    padding: 0 20px;
+    box-sizing: border-box;
 }
 
 /* ---------- KPI CARDS ---------- */
