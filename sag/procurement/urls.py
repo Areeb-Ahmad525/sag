@@ -18,6 +18,8 @@ urlpatterns = [
     path('quotations/', views.quotation_list, name='quotation_list'),
     path('quotations/create/', views.quotation_create, name='quotation_create'),
     path('quotations/<int:q_id>/', views.quotation_detail, name='quotation_detail'),
+    path('quotations/<int:q_id>/send/', views.quotation_send, name='quotation_send'),
+
     path('quotations/<int:q_id>/accept/', views.quotation_accept, name='quotation_accept'),
 
     # PO

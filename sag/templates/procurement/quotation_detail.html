@@ -8,22 +8,22 @@
 
 <div class="wrapper">
 
-    <!-- PO Header -->
+    <!-- Header -->
     <div class="pr-header">
-        <h3>PO #{{ po.pk }}</h3>
+        <h3>Quotation #{{ q.pk }} — {{ q.supplier.name }}</h3>
 
-        {% if po.status == 'draft' %}
+        {% if q.status == 'draft' %}
             <span class="status-badge status-draft"><i class="fa fa-clock"></i> Draft</span>
-        {% elif po.status == 'sent' %}
+        {% elif q.status == 'sent' %}
             <span class="status-badge status-submitted"><i class="fa fa-paper-plane"></i> Sent</span>
-        {% elif po.status == 'received' %}
-            <span class="status-badge status-approved"><i class="fa fa-check"></i> Received</span>
+        {% elif q.status == 'accepted' %}
+            <span class="status-badge status-approved"><i class="fa fa-check"></i> Accepted</span>
         {% endif %}
     </div>
 
-    <!-- Supplier -->
+    <!-- Reference -->
     <div class="pr-description">
-        <p><strong>Supplier:</strong> {{ po.supplier.name }}</p>
+        <p><strong>Reference:</strong> {{ q.reference }}</p>
     </div>
 
     <!-- Items Table -->
@@ -34,28 +34,36 @@
                     <th>Material</th>
                     <th>Qty</th>
                     <th>Unit Price</th>
-                    <th>Received</th>
+                    <th>Line Total</th>
                 </tr>
             </thead>
             <tbody>
-                {% for it in po.items.all %}
+                {% for it, line_total in items_with_total %}
                     <tr>
                         <td>{{ it.material }}</td>
                         <td>{{ it.quantity }}</td>
                         <td>{{ it.unit_price }}</td>
-                        <td>{{ it.received_quantity }}</td>
+                        <td>{{ line_total|floatformat:2 }}</td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="4" style="text-align:center; color:#777;">No items</td>
+                        <td colspan="4" style="text-align:center; color:#777;">
+                            No items.
+                        </td>
                     </tr>
                 {% endfor %}
+
+                {% if items_with_total %}
+                    <tr>
+                        <td colspan="3"><strong>Total</strong></td>
+                        <td><strong>{{ total_amount|floatformat:2 }}</strong></td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
     </div>
 
     <!-- Collapsible Add Item -->
-    {% if po.status == 'draft' %}
     <div class="collapsible" onclick="toggleCollapse(this)">
         <span>Add Item</span>
         <i class="fa fa-chevron-down collapse-icon"></i>
@@ -70,19 +78,28 @@
             </button>
         </form>
     </div>
-    {% endif %}
 
     <!-- Actions -->
     <div class="actions">
-        <a href="{% url 'procurement:po_list' %}" class="btn-custom btn-back">
+
+        <a href="{% url 'procurement:quotation_list' %}" class="btn-custom btn-back">
             <i class="fa fa-arrow-left"></i> Back
         </a>
 
-        {% if po.status == 'draft' %}
-            <a href="{% url 'procurement:po_send' po.pk %}" class="btn-custom btn-submit">
-                <i class="fa fa-paper-plane"></i> Mark Sent
+        {% if q.status == 'draft' %}
+            <form method="post" action="{% url 'procurement:quotation_send' q.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-custom btn-submit">
+                    <i class="fa fa-paper-plane"></i> Send Quotation
+                </button>
+            </form>
+
+        {% elif q.status == 'sent' %}
+            <a href="{% url 'procurement:quotation_accept' q.pk %}" class="btn-custom btn-approve">
+                <i class="fa fa-check"></i> Accept & Create PO
             </a>
         {% endif %}
+
     </div>
 
 </div>

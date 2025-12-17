@@ -1,0 +1,171 @@
+/* pr_detail.css */
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f7f8fa;
+    color: #333;
+}
+
+.wrapper {
+    width: 100%;;
+    margin: 0px auto;
+    padding: 5px;
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.pr-header {
+    text-align: center;
+   
+}
+
+.pr-header h3 {
+    font-size: 28px;
+    font-weight: 600;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    padding: 6px 14px;
+    border-radius: 20px;
+    color: white;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.status-draft { background-color: #6c757d; }
+.status-submitted { background-color: #ffc107; color: #333; }
+.status-approved { background-color: #28a745; }
+
+.pr-description {
+    font-style: italic;
+    color: #555;
+    margin-bottom: 25px;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.data-table th, .data-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+}
+
+.data-table th {
+    background-color: #212223;
+    font-weight: 600;
+}
+
+.data-table tr:hover {
+    background-color: #f1f1f1;
+}
+
+.table-container {
+    overflow-x: auto;
+}
+
+.collapsible {
+    background-color: #f4f5f7;
+    border-radius: 8px;
+    padding: 15px;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    font-weight: 500;
+    transition: background 0.2s;
+}
+
+.collapsible:hover {
+    background-color: #e2e3e7;
+}
+
+.collapsible-content {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.3s ease;
+}
+
+.collapsible-content form {
+    padding-top: 15px;
+}
+
+.collapsible-content form .form-group {
+    margin-bottom: 12px;
+}
+
+.collapsible-content form input,
+.collapsible-content form select {
+    width: 100%;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+}
+
+.collapsible-content form button {
+    margin-top: 10px;
+}
+
+.actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+.btn-custom {
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s;
+    border: none;
+}
+
+.btn-back {
+    background-color: #6c757d;
+    color: white;
+}
+
+.btn-back:hover {
+    background-color: #5a6268;
+}
+
+.btn-submit {
+    background-color: #28a745;
+    color: white;
+}
+
+.btn-submit:hover {
+    background-color: #218838;
+}
+
+.btn-approve {
+    background-color: #007bff;
+    color: white;
+}
+
+.btn-approve:hover {
+    background-color: #0069d9;
+}
+
+.collapse-icon {
+    transition: transform 0.2s ease;
+}
+
+.collapse-icon.rotate {
+    transform: rotate(180deg);
+}

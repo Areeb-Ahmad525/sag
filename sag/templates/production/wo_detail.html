@@ -1,45 +1,203 @@
-{% extends "management_base.html" %}
-{% block content %}
-<h3>WO: {{ wo.work_order_number }}</h3>
-<p>Product: {{ wo.product }} — Qty: {{ wo.quantity_to_produce }} — Status: {{ wo.status }}</p>
+{% extends "production/production_base.html" %}
+{% load static %}
 
-<hr>
-<h5>Record Consumption</h5>
-<form method="post">
-  {% csrf_token %}
-  {{ consumption_form.as_p }}
-  <button name="add_consumption" class="btn btn-sm btn-danger">Record Consumption (OUT)</button>
-</form>
+{% block production_child %}
 
-<hr>
-<h5>Record Production Output</h5>
-<form method="post">
-  {% csrf_token %}
-  {{ output_form.as_p }}
-  <button name="add_output" class="btn btn-sm btn-success">Add Output</button>
-</form>
+<link rel="stylesheet" href="{% static 'css/pr_detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-<hr>
-<h5>Record Wastage</h5>
-<form method="post">
-  {% csrf_token %}
-  {{ wastage_form.as_p }}
-  <button name="add_wastage" class="btn btn-sm btn-warning">Add Wastage</button>
-</form>
+<div class="wrapper">
 
-<hr>
-<h5>Consumptions</h5>
-<ul>
-  {% for c in wo.consumptions.all %}
-    <li>{{ c.timestamp }} — {{ c.raw_material }} — {{ c.quantity_used }} — Batch: {{ c.batch }}</li>
-  {% empty %}<li>No consumption recorded.</li>{% endfor %}
-</ul>
+    <!-- Header -->
+    <div class="pr-header">
+        <h3>WO: {{ wo.work_order_number }}</h3>
 
-<h5>Outputs</h5>
-<ul>
-  {% for o in wo.outputs.all %}
-    <li>{{ o.timestamp }} — {{ o.quantity_produced }} — Warehouse: {{ o.warehouse }}</li>
-  {% empty %}<li>No outputs recorded.</li>{% endfor %}
-</ul>
+        {% if wo.status == 'planned' %}
+            <span class="status-badge status-draft"><i class="fa fa-clock"></i> Planned</span>
+        {% elif wo.status == 'in_progress' %}
+            <span class="status-badge status-submitted"><i class="fa fa-gear"></i> In Progress</span>
+        {% elif wo.status == 'completed' %}
+            <span class="status-badge status-approved"><i class="fa fa-check"></i> Completed</span>
+        {% endif %}
+    </div>
+
+    <!-- Description -->
+    <div class="pr-description">
+        <p>
+            <strong>Product:</strong> {{ wo.product }}  
+            — <strong>Qty:</strong> {{ wo.quantity_to_produce }}  
+            — <strong>Status:</strong> {{ wo.get_status_display }}
+        </p>
+    </div>
+
+    <!-- ========================= -->
+    <!--  1. Record Consumption    -->
+    <!-- ========================= -->
+    {% if wo.status == 'planned' or wo.status == 'in_progress' %}
+    <div class="collapsible" onclick="toggleCollapse(this)">
+        <span>Record Consumption (OUT)</span>
+        <i class="fa fa-chevron-down collapse-icon"></i>
+    </div>
+
+    <div class="collapsible-content">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">{{ consumption_form.as_p }}</div>
+            <button class="btn-custom btn-submit" name="add_consumption">
+                <i class="fa fa-arrow-up"></i> Record Consumption
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- ========================= -->
+    <!--  2. Record Production     -->
+    <!-- ========================= -->
+    {% if wo.status == 'planned' or wo.status == 'in_progress' %}
+    <div class="collapsible" onclick="toggleCollapse(this)">
+        <span>Record Production Output</span>
+        <i class="fa fa-chevron-down collapse-icon"></i>
+    </div>
+
+    <div class="collapsible-content">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">{{ output_form.as_p }}</div>
+            <button class="btn-custom btn-approve" name="add_output">
+                <i class="fa fa-plus"></i> Add Output
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- ========================= -->
+    <!--  3. Record Wastage        -->
+    <!-- ========================= -->
+    {% if wo.status == 'planned' or wo.status == 'in_progress' %}
+    <div class="collapsible" onclick="toggleCollapse(this)">
+        <span>Record Wastage</span>
+        <i class="fa fa-chevron-down collapse-icon"></i>
+    </div>
+
+    <div class="collapsible-content">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">{{ wastage_form.as_p }}</div>
+            <button class="btn-custom btn-back" name="add_wastage">
+                <i class="fa fa-trash"></i> Add Wastage
+            </button>
+        </form>
+    </div>
+    {% endif %}
+
+    <!-- ========================= -->
+    <!--  Consumption Table        -->
+    <!-- ========================= -->
+    <h4 class="section-title">Consumption Records</h4>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Raw Material</th>
+                    <th>Quantity Used</th>
+                    <th>Batch</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in wo.consumptions.all %}
+                    <tr>
+                        <td>{{ c.timestamp }}</td>
+                        <td>{{ c.raw_material }}</td>
+                        <td>{{ c.quantity_used }}</td>
+                        <td>{{ c.batch }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="4" style="text-align:center; color:#777;">No consumption recorded.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========================= -->
+    <!--  Output Table             -->
+    <!-- ========================= -->
+    <h4 class="section-title">Production Output</h4>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Produced Qty</th>
+                    <th>Warehouse</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for o in wo.outputs.all %}
+                    <tr>
+                        <td>{{ o.timestamp }}</td>
+                        <td>{{ o.quantity_produced }}</td>
+                        <td>{{ o.warehouse }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align:center; color:#777;">No outputs recorded.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ========================= -->
+    <!--  Wastage Table (Optional) -->
+    <!-- ========================= -->
+
+    {% if wo.wastages.all %}
+    <h4 class="section-title">Wastage Records</h4>
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Timestamp</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for w in wo.wastages.all %}
+                    <tr>
+                        <td>{{ w.timestamp }}</td>
+                        <td>{{ w.wastage_type }}</td>
+                        <td>{{ w.quantity }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="3" style="text-align:center; color:#777;">No wastage recorded.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% endif %}
+
+</div>
+
+
+<script>
+function toggleCollapse(element) {
+    const content = element.nextElementSibling;
+    const icon = element.querySelector('.collapse-icon');
+
+    if (content.style.maxHeight) {
+        content.style.maxHeight = null;
+        icon.classList.remove('rotate');
+    } else {
+        content.style.maxHeight = content.scrollHeight + "px";
+        icon.classList.add('rotate');
+    }
+}
+</script>
 
 {% endblock %}

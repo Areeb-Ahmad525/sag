@@ -63,11 +63,22 @@ def pr_create(request):
 
 
 @login_required
-@role_required(['procurement','admin'])
+@role_required(['procurement', 'admin'])
 def pr_detail(request, pr_id):
     pr = get_object_or_404(PurchaseRequest, pk=pr_id)
     item_form = PurchaseRequestItemForm()
+
+    can_approve = (
+        pr.status == "submitted"
+        and request.user.userprofile.role in ['admin', 'procurement']
+    )
+
     if request.method == 'POST' and 'add_item' in request.POST:
+        # Backend guard: only allow adding items when PR is in draft status
+        if pr.status != 'draft':
+            messages.error(request, "Items can only be added to PRs in draft status.")
+            return redirect('procurement:pr_detail', pr_id=pr.id)
+
         item_form = PurchaseRequestItemForm(request.POST)
         if item_form.is_valid():
             item = item_form.save(commit=False)
@@ -75,7 +86,14 @@ def pr_detail(request, pr_id):
             item.save()
             messages.success(request, "Item added to PR.")
             return redirect('procurement:pr_detail', pr_id=pr.id)
-    return render(request, 'procurement/pr_detail.html', {'pr': pr, 'item_form': item_form})
+        # if invalid, fall through to render with form errors
+
+    return render(request, 'procurement/pr_detail.html', {
+        'pr': pr,
+        'item_form': item_form,
+        'can_approve': can_approve,
+    })
+
 
 
 @login_required
@@ -134,6 +152,8 @@ def quotation_create(request):
 def quotation_detail(request, q_id):
     q = get_object_or_404(Quotation, pk=q_id)
     item_form = QuotationItemForm()
+    
+    # Handle adding an item
     if request.method == 'POST' and 'add_item' in request.POST:
         item_form = QuotationItemForm(request.POST)
         if item_form.is_valid():
@@ -141,8 +161,38 @@ def quotation_detail(request, q_id):
             item.quotation = q
             item.save()
             messages.success(request, "Item added to Quotation.")
-            return redirect('procurement:quotation_detail', q_id=q.id)
-    return render(request, 'procurement/quotation_detail.html', {'q': q, 'item_form': item_form})
+            # Stay on the same page to show added item and errors if any
+        else:
+            messages.error(request, "Please correct the errors below.")
+
+    # Prepare items with line totals
+    items_with_total = []
+    for it in q.items.all():
+        line_total = (it.unit_price or 0) * it.quantity
+        items_with_total.append((it, line_total))
+    
+    # Total amount for the quotation
+    total_amount = sum(line_total for _, line_total in items_with_total)
+
+    return render(request, 'procurement/quotation_detail.html', {
+        'q': q,
+        'item_form': item_form,
+        'items_with_total': items_with_total,
+        'total_amount': total_amount,
+    })
+
+
+@login_required
+@role_required(['procurement','admin'])
+def quotation_send(request, q_id):
+    q = get_object_or_404(Quotation, pk=q_id)
+    if q.status != 'draft':
+        messages.info(request, "Quotation cannot be sent.")
+        return redirect('procurement:quotation_detail', q_id=q.id)
+    q.status = 'sent'
+    q.save()
+    messages.success(request, "Quotation sent successfully.")
+    return redirect('procurement:quotation_detail', q_id=q.id)
 
 
 @login_required

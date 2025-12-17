@@ -8,22 +8,22 @@
 
 <div class="wrapper">
 
-    <!-- PO Header -->
+    <!-- GRN Header -->
     <div class="pr-header">
-        <h3>PO #{{ po.pk }}</h3>
+        <h3>GRN #{{ grn.pk }}</h3>
 
-        {% if po.status == 'draft' %}
+        {% if grn.status == 'draft' %}
             <span class="status-badge status-draft"><i class="fa fa-clock"></i> Draft</span>
-        {% elif po.status == 'sent' %}
-            <span class="status-badge status-submitted"><i class="fa fa-paper-plane"></i> Sent</span>
-        {% elif po.status == 'received' %}
-            <span class="status-badge status-approved"><i class="fa fa-check"></i> Received</span>
+        {% elif grn.status == 'received' %}
+            <span class="status-badge status-submitted"><i class="fa fa-paper-plane"></i> Received</span>
+        {% elif grn.status == 'confirmed' %}
+            <span class="status-badge status-approved"><i class="fa fa-check"></i> Confirmed</span>
         {% endif %}
     </div>
 
-    <!-- Supplier -->
+    <!-- Supplier & Warehouse -->
     <div class="pr-description">
-        <p><strong>Supplier:</strong> {{ po.supplier.name }}</p>
+        <p><strong>Supplier:</strong> {{ grn.supplier.name }} — <strong>Warehouse:</strong> {{ grn.warehouse.name }}</p>
     </div>
 
     <!-- Items Table -->
@@ -33,21 +33,19 @@
                 <tr>
                     <th>Material</th>
                     <th>Qty</th>
-                    <th>Unit Price</th>
-                    <th>Received</th>
+                    <th>PO Item</th>
                 </tr>
             </thead>
             <tbody>
-                {% for it in po.items.all %}
+                {% for it in grn.items.all %}
                     <tr>
                         <td>{{ it.material }}</td>
                         <td>{{ it.quantity }}</td>
-                        <td>{{ it.unit_price }}</td>
-                        <td>{{ it.received_quantity }}</td>
+                        <td>{% if it.po_item %}PO Item #{{ it.po_item.pk }}{% endif %}</td>
                     </tr>
                 {% empty %}
                     <tr>
-                        <td colspan="4" style="text-align:center; color:#777;">No items</td>
+                        <td colspan="3" style="text-align:center; color:#777;">No items</td>
                     </tr>
                 {% endfor %}
             </tbody>
@@ -55,7 +53,7 @@
     </div>
 
     <!-- Collapsible Add Item -->
-    {% if po.status == 'draft' %}
+    {% if grn.status != 'confirmed' %}
     <div class="collapsible" onclick="toggleCollapse(this)">
         <span>Add Item</span>
         <i class="fa fa-chevron-down collapse-icon"></i>
@@ -74,13 +72,13 @@
 
     <!-- Actions -->
     <div class="actions">
-        <a href="{% url 'procurement:po_list' %}" class="btn-custom btn-back">
+        <a href="{% url 'procurement:grn_list' %}" class="btn-custom btn-back">
             <i class="fa fa-arrow-left"></i> Back
         </a>
 
-        {% if po.status == 'draft' %}
-            <a href="{% url 'procurement:po_send' po.pk %}" class="btn-custom btn-submit">
-                <i class="fa fa-paper-plane"></i> Mark Sent
+        {% if grn.status == 'received' %}
+            <a href="{% url 'procurement:grn_confirm' grn.pk %}" class="btn-custom btn-approve">
+                <i class="fa fa-check"></i> Confirm GRN & Update Inventory
             </a>
         {% endif %}
     </div>

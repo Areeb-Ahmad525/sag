@@ -6,10 +6,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Aluminium & Glass Dashboard</title>
+    
 </head>
 
-<body>
 
+
+<body>
+<div class="wrapper">
     <!-- NAVIGATION BAR -->
         <div class="navbar">
             <div class="hamburger">
@@ -18,7 +21,7 @@
                 <div></div>
             </div>
 
-            Saud Aluminium and Glass
+            <span class="brand-title">Saud Aluminium and Glass</span>
 
             <!-- USER PROFILE DROPDOWN -->
             <div class="user-dropdown">
@@ -35,20 +38,38 @@
     <div class="container">
 
         <!-- SIDEBAR -->
-        <div class="sidebar">
-            <a href="{% url 'dashboard' %}">Dashboard</a>
-            <a href="{% url 'procurement:procurement_index' %}">Procurement</a>
-            <a href="/inventory">Inventory</a>
-            <a href="{% url 'production:production_index' %}">Production</a>
-            <a href="#">Sales</a>
-            <a href="#">Purchase</a>
-            <a href="#">Projects</a>
-            <a href="#">QC</a>
-            <a href="#">Delivery</a>
-            <a href="#">Installation</a>
-            <a href="#">Finance</a>
-            <a href="#">Reports</a>
-            <a href="#">Settings</a>
+<div class="sidebar">
+    <a href="{% url 'dashboard' %}" 
+       class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+       Dashboard
+    </a>
+
+    <a href="{% url 'procurement:procurement_index' %}" 
+       class="{% if request.resolver_match.url_name == 'procurement_index' %}active{% endif %}">
+       Procurement
+    </a>
+
+    <a href="{% url 'inventory:inventory_base' %}" 
+   class="{% if request.resolver_match.namespace == 'inventory' and request.resolver_match.url_name == 'inventory_base' %}active{% endif %}">
+   Inventory
+</a>
+
+    <a href="{% url 'production:production_base' %}" 
+       class="{% if request.resolver_match.url_name == 'production_index' %}active{% endif %}">
+       Production
+    </a>
+
+    <a href="#" class="{% if request.resolver_match.url_name == 'sales' %}active{% endif %}">Sales</a>
+    <a href="#" class="{% if request.resolver_match.url_name == 'purchase' %}active{% endif %}">Purchase</a>
+    <a href="#" class="{% if request.resolver_match.url_name == 'projects' %}active{% endif %}">Projects</a>
+    <a href="#" class="{% if request.resolver_match.url_name == 'qc' %}active{% endif %}">QC</a>
+    <a href="#" class="{% if request.resolver_match.url_name == 'delivery' %}active{% endif %}">Delivery</a>
+    <a href="#" class="{% if request.resolver_match.url_name == 'installation' %}active{% endif %}">Installation</a>
+    <a href="#" class="{% if request.resolver_match.url_name == 'finance' %}active{% endif %}">Finance</a>
+</div>
+
+            
+            
         </div>
 
         <div class="main">
@@ -60,6 +81,8 @@
 
     </div>
 
+</div>
+
 </body>
 <script>
     const hamburger = document.querySelector('.hamburger');
@@ -67,7 +90,20 @@
 
     hamburger.addEventListener('click', () => {
         sidebar.classList.toggle('active');
+        
     });
+
+const userDropdown = document.querySelector('.user-dropdown');
+
+userDropdown.addEventListener('click', function(e) {
+    e.stopPropagation(); // prevent closing immediately
+    this.classList.toggle('active');
+});
+
+// Close dropdown when clicking outside
+document.addEventListener('click', function() {
+    userDropdown.classList.remove('active');
+});
 </script>
 
 </html>

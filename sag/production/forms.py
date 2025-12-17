@@ -6,6 +6,10 @@ class WorkOrderForm(forms.ModelForm):
     class Meta:
         model = WorkOrder
         fields = ['work_order_number', 'product', 'quantity_to_produce', 'warehouse', 'start_date', 'end_date', 'notes', 'status']
+        widgets = {
+            'start_date': forms.DateInput(attrs={'type': 'date'}),
+            'end_date': forms.DateInput(attrs={'type': 'date'}),
+        }
 
 class ConsumptionForm(forms.ModelForm):
     class Meta:
