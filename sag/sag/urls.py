@@ -32,6 +32,7 @@ urlpatterns = [
     path('accounts/',include('users.urls')),
     path('procurement/', include('procurement.urls', namespace='procurement')),
     path('production/', include('production.urls', namespace='production')),
+    path('sales/', include('sales.urls', namespace='sales')),
 
 ]
 if settings.DEBUG:

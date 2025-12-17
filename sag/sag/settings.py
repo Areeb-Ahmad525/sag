@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     # 'users',
     'procurement',
     'production',
+    'sales',
 ]
 
 import os
