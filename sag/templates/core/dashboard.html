@@ -62,7 +62,10 @@
     <a href="#" class="{% if request.resolver_match.url_name == 'sales' %}active{% endif %}">Sales</a>
     <a href="#" class="{% if request.resolver_match.url_name == 'purchase' %}active{% endif %}">Purchase</a>
     <a href="#" class="{% if request.resolver_match.url_name == 'projects' %}active{% endif %}">Projects</a>
-    <a href="#" class="{% if request.resolver_match.url_name == 'qc' %}active{% endif %}">QC</a>
+    <a href="{% url 'qualitycheck_base' %}"
+        class="{% if request.resolver_match.url_name == 'qualitycheck_base' %}active{% endif %}">
+        Quality Check
+    </a>
     <a href="#" class="{% if request.resolver_match.url_name == 'delivery' %}active{% endif %}">Delivery</a>
     <a href="#" class="{% if request.resolver_match.url_name == 'installation' %}active{% endif %}">Installation</a>
     <a href="#" class="{% if request.resolver_match.url_name == 'finance' %}active{% endif %}">Finance</a>

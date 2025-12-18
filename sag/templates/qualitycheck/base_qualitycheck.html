@@ -1,0 +1,78 @@
+{% extends 'core/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+
+<div class="header-buttons-container">
+    <div class="header-buttons">
+
+        <a href="{% url 'inspection_list' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'inspection_list' %}active{% endif %}">
+            Inspections
+        </a>
+
+        <a href="{% url 'create_inspection' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'create_inspection' %}active{% endif %}">
+            New Inspection
+        </a>
+
+    </div>
+    <div class="header-underline"></div>
+</div>
+
+<div class="child-content">
+    {% block qualitycheck_child %}
+    {% endblock %}
+</div>
+
+<style>
+.header-buttons-container {
+    padding: 12px 18px;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    border-bottom: 1px solid #e0e0e0;
+}
+.header-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+.header-btn {
+    padding: 5px 15px;
+    border: 2px solid #007bff;
+    border-radius: 50px;
+    background-color: transparent;
+    color: #007bff;
+    font-weight: 350;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+}
+.header-btn.active {
+    background-color: #007bff;
+    color: #fff;
+}
+.header-btn:hover {
+    background-color: #007bff10;
+}
+.header-underline {
+    margin-top: 10px;
+    height: 2px;
+    background-color: #e0e0e0;
+    width: 100%;
+}
+.child-content {
+    width: 100%;
+    padding: 20px 0;
+}
+@media (max-width: 768px) {
+    .header-buttons {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+</style>
+
+{% endblock %}

@@ -33,6 +33,7 @@ urlpatterns = [
     path('procurement/', include('procurement.urls', namespace='procurement')),
     path('production/', include('production.urls', namespace='production')),
     path('sales/', include('sales.urls', namespace='sales')),
+    path('qualitycheck/', include('qualitycheck.urls')),
 
 ]
 if settings.DEBUG:

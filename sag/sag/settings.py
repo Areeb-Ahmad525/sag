@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'procurement',
     'production',
     'sales',
+    'qualitycheck',
 ]
 
 import os

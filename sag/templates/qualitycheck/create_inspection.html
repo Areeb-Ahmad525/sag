@@ -1,0 +1,41 @@
+{% extends "qualitycheck/base_qualitycheck.html" %}
+{% load static %}
+
+{% block qualitycheck_child %}
+
+<link rel="stylesheet" href="{% static 'css/pr_detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="wrapper">
+
+    <!-- Header -->
+    <div class="pr-header">
+        <h3>New Quality Inspection</h3>
+        <span class="status-badge status-draft">
+            <i class="fa fa-clipboard-check"></i> Draft
+        </span>
+    </div>
+
+    <!-- Form -->
+    <div class="collapsible-content" style="max-height: unset;">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                {{ form.as_p }}
+            </div>
+
+            <div class="actions">
+                <button type="submit" class="btn-custom btn-submit">
+                    <i class="fa fa-save"></i> Save Inspection
+                </button>
+
+                <a href="{% url 'inspection_list' %}" class="btn-custom btn-back">
+                    <i class="fa fa-arrow-left"></i> Back
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+{% endblock %}
