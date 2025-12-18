@@ -72,6 +72,15 @@ WO_STATUS = (
 class WorkOrder(models.Model):
     work_order_number = models.CharField(max_length=64, unique=True)
     product = models.ForeignKey(Product, on_delete=models.PROTECT)
+    # Optional link to a SalesOrder (created in the sales app)
+    sales_order = models.ForeignKey(
+        'sales.SalesOrder',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='work_orders',
+        help_text='Linked sales order, if this WO was created to fulfil a sales order'
+    )
     quantity_to_produce = models.PositiveIntegerField()
     warehouse = models.ForeignKey(Warehouse, on_delete=models.PROTECT, help_text="Where finished goods will be stored")
     status = models.CharField(max_length=24, choices=WO_STATUS, default='planned')

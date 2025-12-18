@@ -84,8 +84,7 @@ def logout_view(request):
     messages.info(request, "You’ve been logged out.")
     return redirect('login')
 
-@login_required
-@role_required(['hr','admin'])
+
 def register_user(request):
     """
     Only HR/Admin can register new users. Uses email as username.

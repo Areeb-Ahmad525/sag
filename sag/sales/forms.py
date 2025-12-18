@@ -1,18 +1,16 @@
 from django import forms
 from django.forms import inlineformset_factory
+from django.core.exceptions import ValidationError
 
 from .models import (
     Customer,
     Quotation,
     QuotationItem,
     SalesOrder,
-    SalesOrderItem
 )
 
 
-
-# CUSTOMER FORM 
-
+# CUSTOMER FORM
 class CustomerForm(forms.ModelForm):
     class Meta:
         model = Customer
@@ -28,7 +26,6 @@ class CustomerForm(forms.ModelForm):
 
 
 # QUOTATION FORM
-
 class QuotationForm(forms.ModelForm):
     class Meta:
         model = Quotation
@@ -39,14 +36,12 @@ class QuotationForm(forms.ModelForm):
         ]
 
 
-
 # QUOTATION ITEM FORM
-
 class QuotationItemForm(forms.ModelForm):
     class Meta:
         model = QuotationItem
         fields = [
-            'product',       
+            'product',
             'description',
             'quantity',
             'unit_price',
@@ -64,34 +59,33 @@ QuotationItemFormSet = inlineformset_factory(
 
 # SALES ORDER FORM
 class SalesOrderForm(forms.ModelForm):
+    """
+    SalesOrder is created ONLY from an approved quotation.
+    Customer is auto-derived from quotation.
+    Assignment & production handover are NOT handled here.
+    """
+
     class Meta:
         model = SalesOrder
         fields = [
             'quotation',
-            'customer',
             'status',
             'expected_delivery_date',
             'remarks',
         ]
 
+    def clean(self):
+        cleaned_data = super().clean()
+        quotation = cleaned_data.get('quotation')
 
+        if not quotation:
+            raise ValidationError("Quotation is required to create a Sales Order.")
 
-# SALES ORDER ITEM FORM
-class SalesOrderItemForm(forms.ModelForm):
-    class Meta:
-        model = SalesOrderItem
-        fields = [
-            'material',      
-            'description',
-            'quantity',
-            'unit_price',
-        ]
+        if quotation.status != 'approved':
+            raise ValidationError(
+                "Only approved quotations can be converted into Sales Orders."
+            )
 
+        self.instance.customer = quotation.customer
 
-SalesOrderItemFormSet = inlineformset_factory(
-    SalesOrder,
-    SalesOrderItem,
-    form=SalesOrderItemForm,
-    extra=1,
-    can_delete=True
-)
+        return cleaned_data

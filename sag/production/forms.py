@@ -1,11 +1,10 @@
 from django import forms
 from .models import WorkOrder, WorkOrderConsumption, ProductionOutput, ProductionWastage, Product, BOM, BOMItem, FinishedProductBatch
-from inventory.models import Product
 
 class WorkOrderForm(forms.ModelForm):
     class Meta:
         model = WorkOrder
-        fields = ['work_order_number', 'product', 'quantity_to_produce', 'warehouse', 'start_date', 'end_date', 'notes', 'status']
+        fields = ['work_order_number', 'product', 'quantity_to_produce', 'sales_order', 'warehouse', 'start_date', 'end_date', 'notes', 'status']
         widgets = {
             'start_date': forms.DateInput(attrs={'type': 'date'}),
             'end_date': forms.DateInput(attrs={'type': 'date'}),

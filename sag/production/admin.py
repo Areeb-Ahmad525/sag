@@ -24,8 +24,8 @@ class BOMAdmin(admin.ModelAdmin):
 
 @admin.register(WorkOrder)
 class WorkOrderAdmin(admin.ModelAdmin):
-    list_display = ('work_order_number','product','quantity_to_produce','status','created_at')
-    search_fields = ('work_order_number','product__name')
+    list_display = ('work_order_number','product','quantity_to_produce','sales_order','status','created_at')
+    search_fields = ('work_order_number','product__name','sales_order__id','sales_order__customer__name')
 
 @admin.register(WorkOrderConsumption)
 class WorkOrderConsumptionAdmin(admin.ModelAdmin):

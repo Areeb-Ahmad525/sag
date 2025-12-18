@@ -109,13 +109,13 @@ class DBCRUD:
         if request.method != "POST":
             return {
                 "action": "render",
-                "form": self.form_class(),
+                "form": self.form_class(**(form_kwargs or {})),
                 "success": None,
                 "errors": None,
             }
 
         try:
-            form = self.form_class(request.POST, **(form_kwargs or {}))
+            form = self.form_class(request.POST, getattr(request, 'FILES', None), **(form_kwargs or {}))
 
             if form.is_valid():
                 obj = form.save(commit=False)
@@ -143,7 +143,7 @@ class DBCRUD:
         except (IntegrityError, ValidationError) as e:
             return {
                 "action": "render",
-                "form": self.form_class(request.POST),
+                "form": self.form_class(request.POST, getattr(request, 'FILES', None)),
                 "success": False,
                 "errors": str(e),
             }
@@ -166,7 +166,7 @@ class DBCRUD:
         if request.method != "POST":
             return {
                 "action": "render",
-                "form": self.form_class(instance=instance),
+                "form": self.form_class(instance=instance, **(form_kwargs or {})),
                 "success": None,
                 "errors": None,
             }
@@ -174,6 +174,7 @@ class DBCRUD:
         try:
             form = self.form_class(
                 request.POST,
+                getattr(request, 'FILES', None),
                 instance=instance,
                 **(form_kwargs or {}),
             )
@@ -197,14 +198,14 @@ class DBCRUD:
         except (IntegrityError, ValidationError) as e:
             return {
                 "action": "render",
-                "form": self.form_class(instance=instance),
+                "form": self.form_class(instance=instance, **(form_kwargs or {})),
                 "success": False,
                 "errors": str(e),
             }
 
     # CREATE (Parent + FormSet : create/save two forms parent and its child)
     @transaction.atomic
-    def handle_create_with_formset(self, request):
+    def handle_create_with_formset(self, request, form_kwargs: Optional[Dict[str, Any]] = None, formset_kwargs: Optional[Dict[str, Any]] = None):
         """
         Handle creation of a parent object with related child objects.
 
@@ -219,15 +220,15 @@ class DBCRUD:
         if request.method != "POST":
             return {
                 "action": "render",
-                "form": self.form_class(),
-                "formset": self.formset_class(),
+                "form": self.form_class(**(form_kwargs or {})),
+                "formset": self.formset_class(**(formset_kwargs or {})),
                 "success": None,
                 "errors": None,
             }
 
         try:
-            form = self.form_class(request.POST)
-            formset = self.formset_class(request.POST)
+            form = self.form_class(request.POST, getattr(request, 'FILES', None), **(form_kwargs or {}))
+            formset = self.formset_class(request.POST, getattr(request, 'FILES', None), **(formset_kwargs or {}))
 
             if form.is_valid() and formset.is_valid():
                 parent = form.save(commit=False)
@@ -253,21 +254,21 @@ class DBCRUD:
                 "form": form,
                 "formset": formset,
                 "success": False,
-                "errors": form.errors or formset.errors,
+                "errors": str(form.errors) or str(formset.errors),
             }
 
         except (IntegrityError, ValidationError) as e:
             return {
                 "action": "render",
-                "form": self.form_class(request.POST),
-                "formset": self.formset_class(request.POST),
+                "form": self.form_class(request.POST, getattr(request, 'FILES', None)),
+                "formset": self.formset_class(request.POST, getattr(request, 'FILES', None)),
                 "success": False,
                 "errors": str(e),
             }
 
     # UPDATE (Parent + FormSet)
     @transaction.atomic
-    def handle_update_with_formset(self, request, pk):
+    def handle_update_with_formset(self, request, pk, form_kwargs: Optional[Dict[str, Any]] = None, formset_kwargs: Optional[Dict[str, Any]] = None):
         """
         Update a parent object and its related children.
         """
@@ -279,33 +280,43 @@ class DBCRUD:
         if request.method != "POST":
             return {
                 "action": "render",
-                "form": self.form_class(instance=instance),
-                "formset": self.formset_class(instance=instance),
+                "form": self.form_class(instance=instance, **(form_kwargs or {})),
+                "formset": self.formset_class(instance=instance, **(formset_kwargs or {})),
                 "success": None,
                 "errors": None,
             }
 
-        form = self.form_class(request.POST, instance=instance)
-        formset = self.formset_class(request.POST, instance=instance)
+        try:
+            form = self.form_class(request.POST, getattr(request, 'FILES', None), instance=instance, **(form_kwargs or {}))
+            formset = self.formset_class(request.POST, getattr(request, 'FILES', None), instance=instance, **(formset_kwargs or {}))
 
-        if form.is_valid() and formset.is_valid():
-            form.save()
-            formset.save()
+            if form.is_valid() and formset.is_valid():
+                form.save()
+                formset.save()
+
+                return {
+                    "action": "redirect",
+                    "object": instance,
+                    "success": True,
+                    "errors": None,
+                }
 
             return {
-                "action": "redirect",
-                "object": instance,
-                "success": True,
-                "errors": None,
+                "action": "render",
+                "form": form,
+                "formset": formset,
+                "success": False,
+                "errors": str(form.errors) or str(formset.errors),
             }
 
-        return {
-            "action": "render",
-            "form": form,
-            "formset": formset,
-            "success": False,
-            "errors": form.errors or formset.errors,
-        }
+        except (IntegrityError, ValidationError) as e:
+            return {
+                "action": "render",
+                "form": self.form_class(instance=instance, **(form_kwargs or {})),
+                "formset": self.formset_class(instance=instance, **(formset_kwargs or {})),
+                "success": False,
+                "errors": str(e),
+            }
 
     # DELETE
     @transaction.atomic
@@ -340,4 +351,11 @@ class DBCRUD:
                 "object": instance,
                 "success": False,
                 "errors": "Cannot delete: record is linked to other data",
+            }
+        except IntegrityError as e:
+            return {
+                "action": "render",
+                "object": instance,
+                "success": False,
+                "errors": str(e),
             }
