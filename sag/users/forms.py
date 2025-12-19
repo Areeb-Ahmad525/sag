@@ -33,39 +33,39 @@ class UserProfileForm(forms.ModelForm):
 from django import forms
 from .models import Team, UserProfile
 from . import constants
+from django import forms
+from .models import Team, UserProfile
+from . import constants
 
 class TeamForm(forms.ModelForm):
     class Meta:
         model = Team
         fields = ['name', 'manager', 'members']
         widgets = {
-            # We use a standard select but we will hide it with CSS 
-            # and manage it with our custom UI
             'members': forms.SelectMultiple(attrs={'id': 'id_members_hidden', 'style': 'display:none;'}),
         }
 
     def __init__(self, *args, **kwargs):
         super(TeamForm, self).__init__(*args, **kwargs)
         
-        # 1. Get IDs of everyone already in a team (as manager or member)
+        # Get IDs of everyone already assigned to a team
         already_managed = Team.objects.values_list('manager_id', flat=True)
         already_members = Team.objects.values_list('members', flat=True)
-        assigned_ids = set(list(already_managed) + list(already_members))
+        assigned_ids = set(list(already_managed) + [m for m in already_members if m is not None])
 
-        # 2. Filter Manager: Must have ROLE_ADMIN/MANAGER and NOT be in any team
-        # (Assuming your 'manager' role in constants is ROLE_ADMIN or similar)
+        # Filter Manager: Active + Role Admin/Manager + Not assigned
         manager_qs = UserProfile.objects.filter(
-            role=constants.ROLE_ADMIN, # Adjust to your specific manager role constant
+            role=constants.ROLE_ADMIN, 
             status='active'
         ).exclude(id__in=assigned_ids)
 
-        # 3. Filter Members: Must have ROLE_EMPLOYEE and NOT be in any team
+        # Filter Members: Active + Role Employee + Not assigned
         member_qs = UserProfile.objects.filter(
             role=constants.ROLE_EMPLOYEE,
             status='active'
         ).exclude(id__in=assigned_ids)
 
-        # If editing, include the current manager and members in the list
+        # If editing, keep current manager and members in the selection
         if self.instance.pk:
             manager_qs = (manager_qs | UserProfile.objects.filter(id=self.instance.manager_id)).distinct()
             member_qs = (member_qs | self.instance.members.all()).distinct()
