@@ -1,6 +1,7 @@
 from django.contrib import admin
 from .models import UserProfile,LoginActivity
 from django.utils.html import format_html
+from .models import Team
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
@@ -23,3 +24,12 @@ class LoginActivityAdmin(admin.ModelAdmin):
     list_display = ('user', 'status', 'login_time', 'logout_time', 'ip_address')
     search_fields = ('user__email', 'ip_address')
     list_filter = ('status',)
+
+
+
+
+@admin.register(Team)
+class TeamAdmin(admin.ModelAdmin):
+    list_display = ('team_id', 'name', 'manager', 'created_at')
+    search_fields = ('name', 'team_id')
+    filter_horizontal = ('members',) # Makes the ManyToMany selection much easier

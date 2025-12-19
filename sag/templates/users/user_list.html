@@ -1,46 +1,137 @@
-{% extends 'base.html' %}
+{% extends "users/base_user_management.html" %}
 {% load static %}
-{% block content %}
-<h2>User List</h2>
-<table border="1" cellpadding="6" cellspacing="0">
-  <thead>
-    <tr>
-      <th>Photo</th>
-      <th>Name</th>
-      <th>Email</th>
-      <th>Phone</th>
-      <th>Role</th>
-      <th>Status</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for p in users %}
-    <tr>
-      <td>
-        {% if p.profile_picture %}
-          <img src="{{ p.profile_picture.url }}" alt="pic" width="40" height="40"/>
-        {% else %}
-          <img src="{% static 'images/default_profile.jpg' %}" alt="default" width="40" height="40"/>
-        {% endif %}
-      </td>
-      <td>{{ p.name }}</td>
-      <td>{{ p.user.email }}</td>
-      <td>{{ p.phone }}</td>
-      <td>{{ p.get_role_display }}</td>
-      <td>{{ p.status }}</td>
-      <td>
-        {% if request.user.is_authenticated and request.user.userprofile.role in ['hr','admin'] %}
-          <a href="{% url 'toggle_user_status' p.user.id %}">
-            {% if p.status == 'active' %}Deactivate{% else %}Activate{% endif %}
-          </a> |
-          <a href="{% url 'edit_profile' %}">Edit</a>
-        {% else %}
-          -
-        {% endif %}
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+
+{% block user_management_child %}
+<link rel="stylesheet" href="{% static 'css/pr_detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="wrapper">
+    <div class="pr-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+        <div>
+            <h3>System User Directory</h3>
+            <span class="status-badge status-draft" id="userCountBadge">
+                <i class="fa fa-user-check"></i> {{ users.count }} Users
+            </span>
+        </div>
+
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <div style="position: relative;">
+                <i class="fa fa-search" style="position: absolute; left: 10px; top: 10px; color: #aaa;"></i>
+                <input type="text" id="userSearch" placeholder="Search name or email..." 
+                       style="padding: 8px 10px 8px 30px; border-radius: 20px; border: 1px solid #ddd; outline: none; width: 200px;">
+            </div>
+
+            <div class="filter-group" style="display: flex; background: #eee; border-radius: 20px; padding: 2px;">
+                <button onclick="filterUsers('all')" class="filter-btn active-filter" id="btn-all">All</button>
+                <button onclick="filterUsers('active')" class="filter-btn" id="btn-active">Active</button>
+                <button onclick="filterUsers('inactive')" class="filter-btn" id="btn-inactive">Inactive</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="collapsible-content" style="max-height: unset; padding: 15px;">
+        <table id="userTable" style="width: 100%; border-collapse: collapse; font-size: 14px;">
+            <thead>
+                <tr style="text-align: left; background-color: #f8f9fa; border-bottom: 2px solid #eee;">
+                    <th style="padding: 12px;">Profile</th>
+                    <th>Full Name</th>
+                    <th>Email / Phone</th>
+                    <th>Role</th>
+                    <th>Status</th>
+                    <th style="text-align: right;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in users %}
+                <tr class="user-row" data-status="{{ p.status|lower }}" style="border-bottom: 1px solid #f1f1f1; transition: background 0.2s;">
+                    <td style="padding: 10px;">
+                        {% if p.profile_picture %}
+                            <img src="{{ p.profile_picture.url }}" alt="pic" width="40" height="40" style="border-radius: 50%; object-fit: cover; border: 1px solid #ddd;"/>
+                        {% else %}
+                            <i class="fa fa-user-circle fa-2x" style="color: #ccc;"></i>
+                        {% endif %}
+                    </td>
+                    <td class="searchable-name">
+                        <strong>{{ p.name }}</strong><br>
+                        <small style="color: #666;">ID: #{{ p.user.id }}</small>
+                    </td>
+                    <td class="searchable-email">
+                        {{ p.user.email }}<br>
+                        <small style="color: #666;">{{ p.phone|default:"No Phone" }}</small>
+                    </td>
+                    <td>
+                        <span class="role-badge">{{ p.get_role_display }}</span>
+                    </td>
+                    <td>
+                        {% if p.status == 'active' %}
+                            <span style="color: #28a745; font-weight: 500;"><i class="fa fa-circle" style="font-size: 8px;"></i> Active</span>
+                        {% else %}
+                            <span style="color: #dc3545; font-weight: 500;"><i class="fa fa-circle" style="font-size: 8px;"></i> Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td style="text-align: right;">
+                        {# Fixed Permission Check: Checks both Upper and Lower case #}
+                        {% if request.user.userprofile.role.lower == 'hr' or request.user.userprofile.role.lower == 'admin' %}
+                            <a href="{% url 'toggle_user_status' p.user.id %}" 
+                               title="{% if p.status == 'active' %}Deactivate{% else %}Activate{% endif %}"
+                               style="color: {% if p.status == 'active' %}#dc3545{% else %}#28a745{% endif %}; margin-right: 15px; text-decoration: none; font-size: 18px;">
+                                <i class="fa {% if p.status == 'active' %}fa-toggle-on{% else %}fa-toggle-off{% endif %}"></i>
+                            </a>
+                            
+                            <a href="{% url 'edit_profile' %}" style="color: #6c757d; text-decoration: none; font-size: 16px;">
+                                <i class="fa fa-edit"></i>
+                            </a>
+                        {% else %}
+                            <span style="color: #ccc;">-</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 30px; color: #999;">No users found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<style>
+    .filter-btn { border: none; background: transparent; padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 12px; transition: 0.3s; }
+    .filter-btn.active-filter { background: #007bff; color: white; }
+    .role-badge { background: #e7f1ff; color: #007bff; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; }
+    tr:hover { background-color: #f9f9f9; }
+</style>
+
+<script>
+    // 1. Search Logic
+    document.getElementById('userSearch').addEventListener('keyup', function() {
+        let filter = this.value.toLowerCase();
+        let rows = document.querySelectorAll('.user-row');
+        
+        rows.forEach(row => {
+            let name = row.querySelector('.searchable-name').textContent.toLowerCase();
+            let email = row.querySelector('.searchable-email').textContent.toLowerCase();
+            row.style.display = (name.includes(filter) || email.includes(filter)) ? '' : 'none';
+        });
+    });
+
+    // 2. Filter Logic (Active/Inactive)
+    function filterUsers(status) {
+        let rows = document.querySelectorAll('.user-row');
+        let btns = document.querySelectorAll('.filter-btn');
+        
+        // Update Buttons
+        btns.forEach(btn => btn.classList.remove('active-filter'));
+        document.getElementById('btn-' + status).classList.add('active-filter');
+
+        rows.forEach(row => {
+            if (status === 'all') {
+                row.style.display = '';
+            } else {
+                row.style.display = (row.getAttribute('data-status') === status) ? '' : 'none';
+            }
+        });
+    }
+</script>
 {% endblock %}

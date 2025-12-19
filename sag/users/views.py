@@ -204,3 +204,68 @@ def change_password(request):
     else:
         form = PasswordChangeForm(request.user)
     return render(request, 'users/change_password.html', {'form': form})
+
+
+
+
+from .models import Team
+from .forms import TeamForm
+from . import constants
+
+# # Helper to check if user is HR
+# def is_hr(user):
+#     return hasattr(user, 'userprofile') and user.userprofile.role == constants.ROLE_HR
+
+# @user_passes_test(is_hr)
+def team_list(request):
+    teams = Team.objects.all()
+    return render(request, 'users/team_list.html', {'teams': teams})
+
+# @user_passes_test(is_hr)
+def team_create(request):
+    if request.method == "POST":
+        form = TeamForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('team_list')
+    else:
+        form = TeamForm()
+    return render(request, 'users/team_form.html', {'form': form, 'title': 'Create Team'})
+
+# @user_passes_test(is_hr)
+def team_update(request, pk):
+    team = get_object_or_404(Team, pk=pk)
+    if request.method == "POST":
+        form = TeamForm(request.POST, instance=team)
+        if form.is_valid():
+            form.save()
+            return redirect('team_list')
+    else:
+        form = TeamForm(instance=team)
+    return render(request, 'users/team_form.html', {'form': form, 'title': 'Update Team'})
+
+# @user_passes_test(is_hr)
+def team_delete(request, pk):
+    team = get_object_or_404(Team, pk=pk)
+    if request.method == "POST":
+        team.delete()
+        return redirect('team_list')
+    return render(request, 'users/team_confirm_delete.html', {'team': team})
+
+def team_detail(request, pk):
+    team = get_object_or_404(Team, pk=pk)
+    # Fetch all members associated with this team
+    members = team.members.all()
+    return render(request, 'users/team_detail.html', {
+        'team': team,
+        'members': members
+    })
+
+
+def teams_base(request):
+    return render(request, 'users/base_teams.html')
+
+def user_base(request):
+    return render(request, 'users/base_user_management.html')
+
+

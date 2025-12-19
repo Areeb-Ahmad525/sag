@@ -1,0 +1,21 @@
+{% extends "users/base_teams.html" %}
+{% block team_child %}
+<div class="wrapper" style="max-width: 500px; margin: 0 auto;">
+    <div class="pr-header" style="background-color: #dc3545; color: white;">
+        <h3>Confirm Deletion</h3>
+    </div>
+    <div class="collapsible-content" style="text-align: center; padding: 30px;">
+        <i class="fa fa-exclamation-triangle fa-3x" style="color: #dc3545; margin-bottom: 15px;"></i>
+        <p>Are you sure you want to delete <strong>{{ team.name }}</strong>?</p>
+        <p style="font-size: 0.9em; color: #666;">This action cannot be undone.</p>
+        
+        <form method="post" style="margin-top: 20px;">
+            {% csrf_token %}
+            <button type="submit" class="header-btn active" style="background-color: #dc3545; border-color: #dc3545;">
+                Confirm Delete
+            </button>
+            <a href="{% url 'team_list' %}" class="header-btn">Cancel</a>
+        </form>
+    </div>
+</div>
+{% endblock %}

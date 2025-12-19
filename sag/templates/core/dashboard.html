@@ -43,6 +43,14 @@
        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
        Dashboard
     </a>
+    <a href="{% url 'teams_base' %}"
+        class="{% if request.resolver_match.url_name == 'teams_base' %}active{% endif %}">
+        Teams Management
+    </a>
+    <a href="{% url 'user_base' %}"
+        class="{% if request.resolver_match.url_name == 'user_base' %}active{% endif %}">
+        Users Management
+    </a>
 
     <a href="{% url 'procurement:procurement_index' %}" 
        class="{% if request.resolver_match.url_name == 'procurement_index' %}active{% endif %}">
@@ -69,6 +77,7 @@
     <a href="#" class="{% if request.resolver_match.url_name == 'delivery' %}active{% endif %}">Delivery</a>
     <a href="#" class="{% if request.resolver_match.url_name == 'installation' %}active{% endif %}">Installation</a>
     <a href="#" class="{% if request.resolver_match.url_name == 'finance' %}active{% endif %}">Finance</a>
+    
 </div>
 
             

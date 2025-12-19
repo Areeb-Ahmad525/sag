@@ -1,0 +1,49 @@
+{% extends "users/base_teams.html" %}
+{% load static %}
+
+{% block team_child %}
+<link rel="stylesheet" href="{% static 'css/pr_detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="wrapper">
+    <div class="pr-header">
+        <h3>Team Management</h3>
+        <span class="status-badge status-draft">
+            <i class="fa fa-users"></i> {{ teams.count }} Total
+        </span>
+    </div>
+
+    <div class="collapsible-content" style="max-height: unset; padding: 20px;">
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="text-align: left; border-bottom: 2px solid #eee;">
+                    <th style="padding: 12px;">ID</th>
+                    <th>Team Name</th>
+                    <th>Manager</th>
+                    <th>Count</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for team in teams %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px;">{{ team.team_id }}</td>
+                    <td><strong>{{ team.name }}</strong></td>
+                    <td>{{ team.manager.name }}</td>
+                    <td>{{ team.members.count }} Members</td>
+                    <td>
+                        <a href="{% url 'team_detail' team.team_id %}" class="btn-custom" style="color: #007bff;"><i class="fa fa-eye"></i></a>
+                        <a href="{% url 'team_update' team.team_id %}" class="btn-custom" style="color: #28a745; margin: 0 10px;"><i class="fa fa-edit"></i></a>
+                        <a href="{% url 'team_delete' team.team_id %}" class="btn-custom" style="color: #dc3545;"><i class="fa fa-trash"></i></a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 20px; color: #888;">No teams found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

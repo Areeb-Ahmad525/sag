@@ -53,3 +53,24 @@ class LoginActivity(models.Model):
     def __str__(self):
         uname = self.user.email if self.user else "Unknown"
         return f"{uname} - {self.status} at {self.login_time.isoformat()}"
+    
+class Team(models.Model):
+    # Auto-incrementing primary key
+    team_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=255, unique=True)
+    
+    manager = models.ForeignKey(
+        UserProfile, 
+        on_delete=models.PROTECT, 
+        related_name='managed_team',
+        # Logic: Manager role check is handled in the Form for better flexibility
+    )
+    members = models.ManyToManyField(
+        UserProfile, 
+        related_name='member_of_teams',
+        blank=True
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} (ID: {self.team_id})"

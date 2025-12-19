@@ -1,6 +1,61 @@
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
+{% extends "users/base_user_management.html" %}
+{% load static %}
 
-    <button type="submit">Register User</button>
-</form>
+{% block user_management_child %}
+<link rel="stylesheet" href="{% static 'css/pr_detail.css' %}">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<div class="wrapper">
+
+    <div class="pr-header">
+        <h3>Create New System User</h3>
+        <span class="status-badge status-draft">
+            <i class="fa fa-user-shield"></i> Administration
+        </span>
+    </div>
+
+    <div class="collapsible-content" style="max-height: unset; padding: 20px;">
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="form-group">
+                {% for field in form %}
+                    <div class="field-container" style="margin-bottom: 15px;">
+                        <label style="font-weight: 500; display: block; margin-bottom: 5px;">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div style="color: #dc3545; font-size: 0.85em; margin-top: 5px;">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="actions" style="margin-top: 30px; display: flex; gap: 10px;">
+                <button type="submit" class="header-btn active">
+                    <i class="fa fa-save"></i> Register User
+                </button>
+
+                <a href="{% url 'user_list' %}" class="header-btn">
+                    <i class="fa fa-arrow-left"></i> Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+
+</div>
+
+<style>
+    /* Styling form inputs to match your theme */
+    input[type="text"], input[type="email"], input[type="password"], select, textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-sizing: border-box;
+    }
+    input:focus { border-color: #007bff; outline: none; }
+</style>
+
+{% endblock %}
