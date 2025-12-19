@@ -4,6 +4,10 @@ from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
+from django.shortcuts import render
+from django.contrib.auth.decorators import login_required
+from users.decorators import role_required
+from production.models import ProductionTask
 
 from users.decorators import role_required
 from inventory.models import InventoryBatch, StockMovement
@@ -29,14 +33,56 @@ from .forms import (
 
 # DASHBOARD
 
+from django.db.models import Count
+
+from django.db.models import Count
+from django.utils import timezone
+
 @login_required
 @role_required(['production', 'admin', 'manager'])
 def production_index(request):
-    return render(request, 'production/production_index.html', {
-        'total_wos': WorkOrder.objects.count(),
-        'running': WorkOrder.objects.filter(status='in_progress').count(),
-        'completed': WorkOrder.objects.filter(status='completed').count(),
-    })
+    # Work order stats
+    total_wos = WorkOrder.objects.count()
+    running = WorkOrder.objects.filter(status='in_progress').count()
+    completed = WorkOrder.objects.filter(status='completed').count()
+
+    # Task stats
+    total_tasks = ProductionTask.objects.count()
+    tasks_pending = ProductionTask.objects.filter(status='pending').count()
+    tasks_in_progress = ProductionTask.objects.filter(status='in_progress').count()
+    tasks_completed = ProductionTask.objects.filter(status='completed').count()
+
+    # Tasks per user
+    tasks_by_user_qs = (
+        ProductionTask.objects
+        .values('assigned_to__username')
+        .annotate(task_count=Count('id'))
+        .order_by('-task_count')
+    )
+
+    # Prepare tasks by user with percentage
+    tasks_by_user = []
+    for user in tasks_by_user_qs:
+        user_name = user['assigned_to__username'] or "Unassigned"
+        count = user['task_count']
+        percent = round((count / total_tasks * 100), 2) if total_tasks > 0 else 0
+        tasks_by_user.append({'username': user_name, 'count': count, 'percent': percent})
+
+    context = {
+        'total_wos': total_wos,
+        'running': running,
+        'completed': completed,
+        'total_tasks': total_tasks,
+        'tasks_pending': tasks_pending,
+        'tasks_in_progress': tasks_in_progress,
+        'tasks_completed': tasks_completed,
+        'tasks_by_user': tasks_by_user,
+        'today': timezone.now().date(),
+    }
+
+    return render(request, 'production/production_index.html', context)
+
+
 
 
 
@@ -106,24 +152,65 @@ def wo_delete(request, wo_id):
 
 # WORK ORDER DETAIL
 
+from django.db.models import Sum
+
+from django.shortcuts import render, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.db.models import Sum
+from users.decorators import role_required
+
+from .models import WorkOrder
+from .forms import ProductionTaskForm, ConsumptionForm, OutputForm, WastageForm
+
 @login_required
 @role_required(['production', 'admin', 'manager'])
 def wo_detail(request, wo_id):
     wo = get_object_or_404(
-        WorkOrder.objects.prefetch_related(
-            'tasks', 'consumptions', 'outputs', 'wastages'
-        ),
+        WorkOrder.objects.prefetch_related('tasks', 'consumptions', 'outputs', 'wastages'),
         pk=wo_id
     )
 
-    return render(request, 'production/wo_detail.html', {
+    tasks = wo.tasks.select_related('assigned_to', 'stage')
+
+    # Calculate produced, remaining, and progress %
+    produced_qty = wo.outputs.aggregate(total=Sum('quantity_produced'))['total'] or 0
+    remaining_qty = max(wo.quantity_to_produce - produced_qty, 0)
+    progress_percent = 0
+    if wo.quantity_to_produce > 0:
+        progress_percent = round((produced_qty / wo.quantity_to_produce) * 100, 2)
+
+    # Prepare form sections for template
+    form_sections = [
+        {
+            'name': 'Consumption',
+            'form': ConsumptionForm(),
+            'icon': 'fa-arrow-up',
+            'btn_text': 'Record Consumption'
+        },
+        {
+            'name': 'Output',
+            'form': OutputForm(),
+            'icon': 'fa-plus',
+            'btn_text': 'Add Output'
+        },
+        {
+            'name': 'Wastage',
+            'form': WastageForm(),
+            'icon': 'fa-trash',
+            'btn_text': 'Add Wastage'
+        }
+    ]
+
+    context = {
         'wo': wo,
-        'tasks': wo.tasks.select_related('assigned_to', 'stage'),
-        'task_form': ProductionTaskForm(),
-        'consumption_form': ConsumptionForm(),
-        'output_form': OutputForm(),
-        'wastage_form': WastageForm(),
-    })
+        'tasks': tasks,
+        'produced_qty': produced_qty,
+        'remaining_qty': remaining_qty,
+        'progress_percent': progress_percent,
+        'form_sections': form_sections,
+    }
+
+    return render(request, 'production/wo_detail.html', context)
 
 # WORK ORDER STATUS
 
@@ -223,6 +310,22 @@ def task_delete(request, task_id):
     task.delete()
     messages.success(request, "Task deleted.")
     return redirect('production:wo_detail', wo_id=wo_id)
+
+
+
+@login_required
+@role_required(['manager', 'admin'])
+def task_list(request):
+    """
+    Display a list of all tasks across work orders.
+    """
+    # Fetch all tasks and prefetch related WorkOrder and assigned user to reduce queries
+    tasks = ProductionTask.objects.select_related('work_order', 'assigned_to', 'stage').order_by('-created_at')
+
+    return render(request, 'production/task_list.html', {
+        'tasks': tasks,
+    })
+
 
 
 # RAW MATERIAL CONSUMPTION

@@ -1,0 +1,24 @@
+{% extends 'production/production_base.html' %}
+{% load crispy_forms_tags %}
+
+{% block production_child %}
+
+<div class="d-flex justify-content-center">
+    <div class="card shadow p-4" style="width: 100%; max-width: 700px;">
+        <h3 class="mb-4">{% if form.instance.pk %}Edit Task{% else %}Create Task{% endif %}</h3>
+
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+
+            <div class="mt-3 d-flex justify-content-end">
+                <a href="{% url 'production:wo_detail' wo_id %}" class="btn btn-secondary me-2">Back</a>
+                <button class="btn btn-primary" type="submit">
+                    {% if form.instance.pk %}Update{% else %}Create{% endif %}
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}

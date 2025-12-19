@@ -5,13 +5,13 @@
 
 <h2 class="mb-4">Work Orders</h2>
 
-
-
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
             <th>ID</th>
             <th>Product</th>
+            <th>Warehouse</th>
+            <th>Quantity</th>
             <th>Status</th>
             <th>Created</th>
             <th>Actions</th>
@@ -23,40 +23,67 @@
         <tr>
             <td>{{ wo.id }}</td>
             <td>{{ wo.product }}</td>
+            <td>{{ wo.warehouse }}</td>
+            <td>{{ wo.quantity_to_produce }}</td>
             <td>{{ wo.get_status_display }}</td>
             <td>{{ wo.created_at|date:"Y-m-d" }}</td>
-            <!-- inside the loop for each wo -->
             <td>
-                <!-- View Button (GET is fine for viewing) -->
-                <a href="{% url 'production:wo_detail' wo.id %}" class="btn btn-sm btn-info text-white">
-                    View
+                <!-- View Button -->
+                <a href="{% url 'production:wo_detail' wo.id %}" class="btn btn-sm btn-info text-white" title="View">
+                    <i class="bi bi-eye"></i>
                 </a>
 
-                <!-- Start button: POST form (only enable if planned) -->
+                <!-- Start Button -->
                 <form method="post" action="{% url 'production:wo_start' wo.id %}" style="display:inline;">
                     {% csrf_token %}
                     {% if wo.status == 'planned' %}
-                        <button type="submit" class="btn btn-sm btn-warning text-white">Start</button>
+                        <button type="submit" class="btn btn-sm btn-warning text-white" title="Start">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
                     {% else %}
-                        <button type="button" class="btn btn-sm btn-warning text-white" disabled>Start</button>
+                        <button type="button" class="btn btn-sm btn-warning text-white" disabled title="Start">
+                            <i class="bi bi-play-fill"></i>
+                        </button>
                     {% endif %}
                 </form>
 
-                <!-- Complete button: POST form (only enable if in_progress) -->
+                <!-- Complete Button -->
                 <form method="post" action="{% url 'production:wo_complete' wo.id %}" style="display:inline;">
                     {% csrf_token %}
                     {% if wo.status == 'in_progress' %}
-                        <button type="submit" class="btn btn-sm btn-success text-white">Complete</button>
+                        <button type="submit" class="btn btn-sm btn-success text-white" title="Complete">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </button>
                     {% else %}
-                        <button type="button" class="btn btn-sm btn-success text-white" disabled>Complete</button>
+                        <button type="button" class="btn btn-sm btn-success text-white" disabled title="Complete">
+                            <i class="bi bi-check-circle-fill"></i>
+                        </button>
                     {% endif %}
                 </form>
-            </td>
 
+                <!-- Edit Button (Admin only) -->
+                
+                <a href="{% url 'production:wo_update' wo.id %}" class="btn btn-sm btn-primary" title="Edit">
+                    <i class="bi bi-pencil-fill"></i>
+                </a>
+
+                <!-- Delete Button (Admin only) -->
+                <form method="post" action="{% url 'production:wo_delete' wo.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this work order?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-sm btn-danger" title="Delete">
+                        <i class="bi bi-trash-fill"></i>
+                    </button>
+                </form>
+               
+
+            </td>
         </tr>
         {% endfor %}
     </tbody>
 
 </table>
+
+<!-- Bootstrap Icons CDN (if not already included) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 {% endblock %}

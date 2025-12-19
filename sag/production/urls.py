@@ -15,13 +15,18 @@ urlpatterns = [
     path('workorders/<int:wo_id>/edit/', views.wo_update, name='wo_update'),
     path('workorders/<int:wo_id>/delete/', views.wo_delete, name='wo_delete'),
 
+        # WORK ORDER STATUS
     path('workorders/<int:wo_id>/start/', views.wo_start, name='wo_start'),
+    path('workorders/<int:wo_id>/complete/', views.wo_complete, name='wo_complete'),
 
     # TASKS
     path('workorders/<int:wo_id>/tasks/create/', views.task_create, name='task_create'),
     path('tasks/<int:task_id>/start/', views.task_start, name='task_start'),
     path('tasks/<int:task_id>/complete/', views.task_complete, name='task_complete'),
     path('tasks/<int:task_id>/delete/', views.task_delete, name='task_delete'),
+
+    path('tasks/', views.task_list, name='task_list'),
+
 
     # CONSUMPTION
     path(

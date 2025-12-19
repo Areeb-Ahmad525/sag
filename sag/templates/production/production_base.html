@@ -6,6 +6,13 @@
 <div class="header-buttons-container">
     <div class="header-buttons">
 
+        <!-- Work Order Buttons -->
+ <!-- Dashboard / Stats -->
+        <a href="{% url 'production:production_base' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'production_base' %}active{% endif %}">
+            Dashboard
+        </a>
+
         <a href="{% url 'production:wo_create' %}"
            class="header-btn {% if request.resolver_match.url_name == 'wo_create' %}active{% endif %}">
             Create Work Order
@@ -16,13 +23,20 @@
             Work Order List
         </a>
 
+        <!-- Task Button -->
+        <a href="{% url 'production:task_list' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'wo_list' %}active{% endif %}">
+            Tasks
+        </a>
+
+       
        
 
     </div>
     <div class="header-underline"></div>
 </div>
 
-<div class ="child-content">
+<div class="child-content">
     {% block production_child %}
     {% endblock %}
 </div>

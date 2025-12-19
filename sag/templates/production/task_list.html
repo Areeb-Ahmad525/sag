@@ -1,0 +1,57 @@
+{% extends 'production/production_base.html' %}
+
+{% block production_child %}
+
+<h2 class="mb-4">Tasks</h2>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Task</th>
+            <th>Work Order</th>
+            <th>Stage</th>
+            <th>Assigned To</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in tasks %}
+        <tr>
+            <td>{{ task.id }}</td>
+            <td><a href="{% url 'production:wo_detail' task.work_order.id %}">{{ task.name }}</a></td>
+            <td>{{ task.work_order.work_order_number }}</td>
+            <td>{{ task.stage }}</td>
+            <td>{{ task.assigned_to }}</td>
+            <td>{{ task.get_status_display }}</td>
+            <td>
+                {% if task.status == 'planned' %}
+                <form method="post" action="{% url 'production:task_start' task.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-warning" title="Start Task"><i class="fa fa-play"></i></button>
+                </form>
+                {% endif %}
+
+                {% if task.status == 'in_progress' %}
+                <form method="post" action="{% url 'production:task_complete' task.id %}" style="display:inline;">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-success" title="Complete Task"><i class="fa fa-check"></i></button>
+                </form>
+                {% endif %}
+
+                <form method="post" action="{% url 'production:task_delete' task.id %}" style="display:inline;" onsubmit="return confirm('Delete this task?');">
+                    {% csrf_token %}
+                    <button class="btn btn-sm btn-danger" title="Delete Task"><i class="fa fa-trash"></i></button>
+                </form>
+            </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center text-muted">No tasks added yet.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}
