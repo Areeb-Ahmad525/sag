@@ -84,53 +84,43 @@ def logout_view(request):
     messages.info(request, "You’ve been logged out.")
     return redirect('login')
 
-
 def register_user(request):
-    """
-    Only HR/Admin can register new users. Uses email as username.
-    """
     if request.method == "POST":
         form = UserRegistrationForm(request.POST, request.FILES)
         if form.is_valid():
             name = form.cleaned_data['name']
             email = form.cleaned_data['email'].lower().strip()
             password = form.cleaned_data['password']
-            father_name = form.cleaned_data.get('father_name', '')
-            nationality = form.cleaned_data.get('nationality', '')
-            phone = form.cleaned_data.get('phone', '')
-            role = form.cleaned_data.get('role', '')
-            picture = form.cleaned_data.get('profile_picture')
+            
+            # Check if email is already taken
+            if User.objects.filter(email__iexact=email).exists():
+                messages.error(request, "A user with this email already exists.")
+                return render(request, 'users/register_user.html', {'form': form})
 
-            # Prevent duplicate email/username
-            if User.objects.filter(username__iexact=email).exists() or User.objects.filter(email__iexact=email).exists():
-                messages.error(request, "A user with that email already exists.")
-                return redirect('register_user')
+            # Create User: We use email as the technical username to satisfy uniqueness
+            user = User.objects.create_user(
+                username=email, 
+                email=email, 
+                password=password
+            )
 
-            # Create User with username=email
-            user = User.objects.create_user(username=email, email=email, password=password)
-            user.save()
-
-            profile, created = UserProfile.objects.get_or_create(user=user)
+            # Update UserProfile: This is where the non-unique Name is stored
+            profile = user.userprofile
             profile.name = name
-            profile.father_name = father_name
-            profile.nationality = nationality
-            profile.phone = phone
-            profile.role = role
-            if picture:
-                profile.profile_picture = picture
-
-            # Keep status mapping to Django's is_active
-            profile.must_change_password = True
+            profile.father_name = form.cleaned_data.get('father_name', '')
+            profile.nationality = form.cleaned_data.get('nationality', '')
+            profile.phone = form.cleaned_data.get('phone', '')
+            profile.role = form.cleaned_data.get('role', '')
+            if form.cleaned_data.get('profile_picture'):
+                profile.profile_picture = form.cleaned_data.get('profile_picture')
+            
             profile.status = 'active'
             profile.save()
-            user.is_active = True
-            user.save()
 
-            messages.success(request, "User registered successfully!")
+            messages.success(request, f"User {name} registered successfully!")
             return redirect('user_list')
     else:
         form = UserRegistrationForm()
-
     return render(request, 'users/register_user.html', {'form': form})
 
 @login_required
