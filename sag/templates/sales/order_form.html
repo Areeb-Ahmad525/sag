@@ -1,0 +1,16 @@
+{% extends 'sales/base_sales.html' %}
+{% block sales_child %}
+
+
+<h3>Sales Order</h3>
+
+
+<form method="post">
+{% csrf_token %}
+<div class="form-card">{{ form.as_p }}</div>
+
+
+<button class="btn btn-primary">Save</button>
+<a href="{% url 'sales:order_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

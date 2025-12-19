@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
+from django.contrib.auth.decorators import login_required
+from users.decorators import role_required
 
 from utils.dbcrud import DBCRUD
 from .models import Customer, Quotation, SalesOrder
@@ -199,3 +201,9 @@ def order_delete(request, pk):
     return render(request, 'sales/order_confirm_delete.html', {
         'object': result['object']
     })
+
+@login_required
+@role_required(['admin','hr'])
+def sales_base(request):
+    return render(request, 'sales/base_sales.html')
+

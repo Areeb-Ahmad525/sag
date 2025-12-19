@@ -1,0 +1,40 @@
+{% extends 'sales/base_sales.html' %}
+{% block sales_child %}
+
+
+<h3>{{ form.instance.pk|yesno:'Update Quotation,Create Quotation' }}</h3>
+
+
+<form method="post">
+{% csrf_token %}
+
+
+<div class="form-card">{{ form.as_p }}</div>
+
+
+<h4>Items</h4>
+{{ formset.management_form }}
+
+
+<table class="data-table">
+<thead>
+<tr><th>Product</th><th>Description</th><th>Qty</th><th>Price</th><th>Delete</th></tr>
+</thead>
+<tbody>
+{% for f in formset %}
+<tr>
+<td>{{ f.product }}</td>
+<td>{{ f.description }}</td>
+<td>{{ f.quantity }}</td>
+<td>{{ f.unit_price }}</td>
+<td>{{ f.DELETE }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+
+
+<button class="btn btn-primary">Save</button>
+<a href="{% url 'sales:quotation_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+{% endblock %}

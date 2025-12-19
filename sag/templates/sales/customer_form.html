@@ -1,0 +1,105 @@
+{% extends "sales/base_sales.html" %}
+{% load static %}
+{% block sales_child %}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
+
+<div class="wrapper">
+
+    <div class="header">
+        <h2>
+            {% if form.instance.pk %}
+                Update Customer
+            {% else %}
+                Create Customer
+            {% endif %}
+        </h2>
+    </div>
+
+    <form method="post" class="crud-form">
+        {% csrf_token %}
+
+        <div class="form-grid">
+
+            <div class="form-group">
+                <label>Name</label>
+                {{ form.name }}
+            </div>
+
+            <div class="form-group">
+                <label>Contact Person</label>
+                {{ form.contact_person }}
+            </div>
+
+            <div class="form-group">
+                <label>Phone</label>
+                {{ form.phone }}
+            </div>
+
+            <div class="form-group">
+                <label>Email</label>
+                {{ form.email }}
+            </div>
+
+            <div class="form-group full-width">
+                <label>Address</label>
+                {{ form.address }}
+            </div>
+
+            <div class="form-group">
+                <label>Source</label>
+                {{ form.source }}
+            </div>
+
+            <div class="form-group">
+                <label>Status</label>
+                {{ form.status }}
+            </div>
+
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle me-1"></i> Save
+            </button>
+
+            <a href="{% url 'sales:customer_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left me-1"></i> Cancel
+            </a>
+        </div>
+    </form>
+
+</div>
+
+<style>
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.form-group.full-width {
+    grid-column: span 2;
+}
+
+.form-actions {
+    margin-top: 25px;
+    display: flex;
+    gap: 12px;
+}
+
+input, select, textarea {
+    padding: 8px 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+}
+</style>
+
+{% endblock %}

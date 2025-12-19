@@ -251,10 +251,12 @@ def team_detail(request, pk):
         'members': members
     })
 
-
+@login_required
+@role_required(['admin','hr'])
 def teams_base(request):
     return render(request, 'users/base_teams.html')
-
+@login_required
+@role_required(['admin','hr'])
 def user_base(request):
     return render(request, 'users/base_user_management.html')
 

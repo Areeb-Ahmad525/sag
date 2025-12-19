@@ -37,48 +37,83 @@
 
     <div class="container">
 
-        <!-- SIDEBAR -->
-<div class="sidebar">
-    <a href="{% url 'dashboard' %}" 
+   <div class="sidebar">
+
+    <!-- Dashboard (everyone) -->
+    <a href="{% url 'dashboard' %}"
        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-       Dashboard
-    </a>
-    <a href="{% url 'teams_base' %}"
-        class="{% if request.resolver_match.url_name == 'teams_base' %}active{% endif %}">
-        Teams Management
-    </a>
-    <a href="{% url 'user_base' %}"
-        class="{% if request.resolver_match.url_name == 'user_base' %}active{% endif %}">
-        Users Management
+        Dashboard
     </a>
 
-    <a href="{% url 'procurement:procurement_index' %}" 
-       class="{% if request.resolver_match.url_name == 'procurement_index' %}active{% endif %}">
-       Procurement
-    </a>
+    {% with role=request.user.userprofile.role %}
 
-    <a href="{% url 'inventory:inventory_base' %}" 
-   class="{% if request.resolver_match.namespace == 'inventory' and request.resolver_match.url_name == 'inventory_base' %}active{% endif %}">
-   Inventory
-</a>
+    <!-- ADMIN & QC → Full access -->
+    {% if role == 'admin' or role == 'qc' %}
 
-    <a href="{% url 'production:production_base' %}" 
-       class="{% if request.resolver_match.url_name == 'production_index' %}active{% endif %}">
-       Production
-    </a>
+        <a href="{% url 'teams_base' %}">Teams Management</a>
+        <a href="{% url 'user_base' %}">Users Management</a>
+        <a href="{% url 'procurement:procurement_index' %}">Procurement</a>
+        <a href="{% url 'inventory:inventory_base' %}">Inventory</a>
+        <a href="{% url 'production:production_base' %}">Production</a>
+        <a href="{% url 'sales:sales_base' %}">Sales</a>
+        <a href="{% url 'qualitycheck_base' %}">Quality Check</a>
 
-    <a href="{% url 'sales:customer_list' %}" class="{% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}">Sales</a>
-    <a href="#" class="{% if request.resolver_match.url_name == 'purchase' %}active{% endif %}">Purchase</a>
-    <a href="#" class="{% if request.resolver_match.url_name == 'projects' %}active{% endif %}">Projects</a>
-    <a href="{% url 'qualitycheck_base' %}"
-        class="{% if request.resolver_match.url_name == 'qualitycheck_base' %}active{% endif %}">
-        Quality Check
-    </a>
-    <a href="#" class="{% if request.resolver_match.url_name == 'delivery' %}active{% endif %}">Delivery</a>
-    <a href="#" class="{% if request.resolver_match.url_name == 'installation' %}active{% endif %}">Installation</a>
-    <a href="#" class="{% if request.resolver_match.url_name == 'finance' %}active{% endif %}">Finance</a>
-    
+    <!-- HR -->
+    {% elif role == 'hr' %}
+
+        <a href="{% url 'teams_base' %}">Teams Management</a>
+        <a href="{% url 'user_base' %}">Users Management</a>
+
+    <!-- PROCUREMENT -->
+    {% elif role == 'procurement' %}
+
+        <a href="{% url 'procurement:procurement_index' %}"
+           class="{% if request.resolver_match.namespace == 'procurement' %}active{% endif %}">
+            Procurement
+        </a>
+
+    <!-- INVENTORY -->
+    {% elif role == 'inventory' %}
+
+        <a href="{% url 'inventory:inventory_base' %}"
+           class="{% if request.resolver_match.namespace == 'inventory' %}active{% endif %}">
+            Inventory
+        </a>
+
+    <!-- SALES -->
+    {% elif role == 'sales' %}
+
+        <a href="{% url 'sales:sales_base' %}"
+           class="{% if request.resolver_match.namespace == 'sales' %}active{% endif %}">
+            Sales
+        </a>
+
+    <!-- PRODUCTION -->
+    {% elif role == 'production' %}
+
+        <a href="{% url 'production:production_base' %}">
+            Production
+        </a>
+
+    <!-- LOGISTICS -->
+    {% elif role == 'logistics' %}
+
+        <a href="#">Logistics</a>
+
+    <!-- FINANCE -->
+    {% elif role == 'finance' %}
+
+        <a href="#">Finance</a>
+
+    <!-- EMPLOYEE / SWEEPER -->
+    {% else %}
+        <!-- Dashboard only -->
+    {% endif %}
+
+    {% endwith %}
+
 </div>
+
 
             
             
@@ -118,4 +153,4 @@ document.addEventListener('click', function() {
 });
 </script>
 
-</html>pip install django==5.1.4
+</html>

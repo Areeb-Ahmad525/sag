@@ -1,0 +1,33 @@
+{% extends 'sales/base_sales.html' %}
+{% block sales_child %}
+
+
+<div class="page-header">
+<h3>Sales Orders</h3>
+</div>
+
+
+<table class="data-table">
+<thead>
+<tr>
+<th>#</th><th>Customer</th><th>Quotation</th><th>Status</th><th>Actions</th>
+</tr>
+</thead>
+<tbody>
+{% for o in orders %}
+<tr>
+<td>{{ o.pk }}</td>
+<td>{{ o.customer.name }}</td>
+<td>#{{ o.quotation.pk }}</td>
+<td>{{ o.status|title }}</td>
+<td class="actions">
+<a href="{% url 'sales:order_update' o.pk %}" class="btn-edit">Edit</a>
+<a href="{% url 'sales:order_delete' o.pk %}" class="btn-delete">Delete</a>
+</td>
+</tr>
+{% empty %}
+<tr><td colspan="5">No orders</td></tr>
+{% endfor %}
+</tbody>
+</table>
+{% endblock %}
