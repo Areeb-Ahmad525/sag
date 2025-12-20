@@ -5,8 +5,6 @@ from django.db import transaction
 from django.utils import timezone
 from django.core.exceptions import ValidationError
 
-from inventory.models import Product
-
 User = settings.AUTH_USER_MODEL
 
 
@@ -177,22 +175,23 @@ class QuotationItem(models.Model):
 
 # SALES ORDERS (POST-CONFIRMATION)
 class SalesOrder(models.Model):
+
     STATUS_CHOICES = [
-        ('pending', 'Pending'),
-        ('in_progress', 'In-Progress'),
+        ('pending', 'Pending'),          # Created after quotation approval
+        ('in_progress', 'In Progress'),  # Production started
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
     ]
 
-    quotation = models.ForeignKey(
-        Quotation,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True
+    # ONE quotation = ONE order
+    quotation = models.OneToOneField(
+        'Quotation',
+        on_delete=models.PROTECT,
+        related_name='sales_order'
     )
 
     customer = models.ForeignKey(
-        Customer,
+        'Customer',
         on_delete=models.PROTECT,
         related_name='orders'
     )
@@ -205,7 +204,7 @@ class SalesOrder(models.Model):
         related_name='created_sales_orders'
     )
 
-    # ✅ RESPONSIBILITY OWNER (MANAGER / PRODUCTION)
+    # ADMIN acts as MANAGER (temporary)
     assigned_to = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -224,28 +223,52 @@ class SalesOrder(models.Model):
     expected_delivery_date = models.DateField(null=True, blank=True)
     remarks = models.TextField(blank=True)
 
+    # VALIDATIONS
     def clean(self):
-        """
-        Enforce assignment before processing
-        """
+        # Guard (admin / migrations)
+        if not self.quotation:
+            return
+
+        # Quotation must be approved
+        if self.quotation.status != 'approved':
+            raise ValidationError(
+                "Sales order can only be created from an approved quotation."
+            )
+
+        # Manager required before production
         if self.status in ['in_progress', 'completed'] and not self.assigned_to:
             raise ValidationError(
                 "Sales order must be assigned before processing."
             )
 
+    def save(self, *args, **kwargs):
+        skip_validation = kwargs.pop('skip_validation', False)
+
+        if not skip_validation:
+            self.full_clean()
+
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"SalesOrder #{self.pk}"
 
-    # =========================
     # WORK ORDER CREATION
-    # =========================
     def create_work_orders(self, warehouse=None, created_by=None, wo_prefix=None):
         """
-        Create WorkOrders in the production app
-        from quotation items.
+        Create WorkOrders ONLY when:
+        - Quotation is approved
+        - Order is pending
+        - Admin (manager) is assigned
         """
-        if not self.quotation:
-            raise RuntimeError("SalesOrder has no linked quotation")
+
+        if self.status == 'in_progress':
+            raise RuntimeError("Work orders already created for this order.")
+
+        if self.status != 'pending':
+            raise RuntimeError("Work orders can only be created from pending orders.")
+
+        if not self.assigned_to:
+            raise RuntimeError("Assign an admin before creating work orders.")
 
         from django.apps import apps
 
@@ -253,14 +276,18 @@ class SalesOrder(models.Model):
         ProdProduct = apps.get_model('production', 'Product')
         Warehouse = apps.get_model('inventory', 'Warehouse')
 
-        # Aggregate quantities per product
         product_quantities = {}
+
+        # Aggregate quotation items
         for item in self.quotation.items.all():
-            product_quantities.setdefault(item.product.pk, {
-                'product': item.product,
-                'quantity': 0
-            })
+            product_quantities.setdefault(
+                item.product.pk,
+                {'product': item.product, 'quantity': 0}
+            )
             product_quantities[item.product.pk]['quantity'] += item.quantity
+
+        if not product_quantities:
+            raise RuntimeError("Quotation has no items to produce.")
 
         created_wos = []
 
@@ -275,7 +302,7 @@ class SalesOrder(models.Model):
                         'category': getattr(inv_product, 'category', '') or '',
                         'size': getattr(inv_product, 'size', '') or '',
                         'color': getattr(inv_product, 'color', '') or '',
-                        'description': getattr(inv_product, 'description', '') if hasattr(inv_product, 'description') else '',
+                        'description': getattr(inv_product, 'description', '') or '',
                     }
                 )
 
@@ -284,11 +311,15 @@ class SalesOrder(models.Model):
                     or getattr(inv_product, 'default_warehouse', None)
                     or Warehouse.objects.first()
                 )
+
                 if not wh:
-                    raise RuntimeError("No warehouse available")
+                    raise RuntimeError("No warehouse available.")
 
                 prefix = wo_prefix or f"SO{self.pk}"
-                wo_number = f"{prefix}-{prod_product.pk}-{int(timezone.now().timestamp())}-{idx}"
+                wo_number = (
+                    f"{prefix}-{prod_product.pk}-"
+                    f"{int(timezone.now().timestamp())}-{idx}"
+                )
 
                 wo = WorkOrder.objects.create(
                     work_order_number=wo_number,
@@ -300,5 +331,9 @@ class SalesOrder(models.Model):
                 )
 
                 created_wos.append(wo)
+
+            # Move order to production
+            self.status = 'in_progress'
+            self.save(skip_validation=True)
 
         return created_wos

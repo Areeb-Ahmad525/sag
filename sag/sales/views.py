@@ -167,9 +167,17 @@ def quotation_approve(request, pk):
 # SALES ORDERS (NO ITEMS)
 
 def order_list(request):
+    orders = (
+        SalesOrder.objects
+        .exclude(status='cancelled')
+        .select_related('customer', 'assigned_to', 'quotation')
+        .order_by('-order_date')
+    )
+
     return render(request, 'sales/order_list.html', {
-        'orders': SalesOrder.objects.select_related('customer', 'assigned_to')
+        'orders': orders
     })
+
 
 
 def order_create(request):
@@ -182,6 +190,17 @@ def order_create(request):
     result = crud.handle_create(request)
 
     if result['success']:
+        order = result['object']
+
+        # EXTRA SAFETY: block duplicate orders
+        if SalesOrder.objects.filter(quotation=order.quotation).exclude(pk=order.pk).exists():
+            order.delete()
+            messages.error(
+                request,
+                "A sales order already exists for this quotation."
+            )
+            return redirect('sales:order_list')
+
         messages.success(request, 'Sales order created successfully')
         return redirect('sales:order_list')
 
@@ -192,6 +211,15 @@ def order_create(request):
 
 
 def order_update(request, pk):
+    order = get_object_or_404(SalesOrder, pk=pk)
+
+    if order.status in ['in_progress', 'completed']:
+        messages.error(
+            request,
+            "This order cannot be edited once production has started."
+        )
+        return redirect('sales:order_list')
+
     crud = DBCRUD(
         model=SalesOrder,
         form_class=SalesOrderForm,
@@ -210,6 +238,15 @@ def order_update(request, pk):
 
 
 def order_delete(request, pk):
+    order = get_object_or_404(SalesOrder, pk=pk)
+
+    if order.status in ['in_progress', 'completed']:
+        messages.error(
+            request,
+            "Orders in production or completed cannot be deleted."
+        )
+        return redirect('sales:order_list')
+
     crud = DBCRUD(SalesOrder)
     result = crud.handle_delete(request, pk)
 
@@ -221,6 +258,7 @@ def order_delete(request, pk):
     return render(request, 'sales/order_confirm_delete.html', {
         'object': result['object']
     })
+
 
 @login_required
 @role_required(['admin','hr'])

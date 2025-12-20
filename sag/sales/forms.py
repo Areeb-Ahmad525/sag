@@ -1,7 +1,9 @@
 from django import forms
 from django.forms import inlineformset_factory
 from django.core.exceptions import ValidationError
-
+from users.models import UserProfile
+from users import constants
+from django.contrib.auth.models import User
 from .models import (
     Customer,
     Quotation,
@@ -114,30 +116,59 @@ class SalesOrderForm(forms.ModelForm):
     """
     SalesOrder is created ONLY from an approved quotation.
     Customer is auto-derived from quotation.
-    Assignment & production handover are NOT handled here.
+    Assigned_to uses Admin role from UserProfile (temporary manager).
     """
 
     class Meta:
         model = SalesOrder
         fields = [
             'quotation',
-            'status',
+            'assigned_to',
             'expected_delivery_date',
             'remarks',
         ]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        # TEMPORARY MANAGER = ADMIN USERS
+        admin_user_ids = (
+            UserProfile.objects
+            .filter(
+                role=constants.ROLE_ADMIN,
+                status='active'
+            )
+            .values_list('user_id', flat=True)
+        )
+
+        self.fields['assigned_to'].queryset = User.objects.filter(
+            id__in=admin_user_ids,
+            is_active=True
+        )
+
+        self.fields['assigned_to'].label = "Assign Admin (Manager)"
+        self.fields['assigned_to'].required = False
+
+        # Lock quotation on edit
+        if self.instance.pk:
+            self.fields['quotation'].disabled = True
 
     def clean(self):
         cleaned_data = super().clean()
         quotation = cleaned_data.get('quotation')
 
         if not quotation:
-            raise ValidationError("Quotation is required to create a Sales Order.")
+            raise ValidationError(
+                "Quotation is required to create a Sales Order."
+            )
 
+        # FIX: USE STATUS (NOT is_approved)
         if quotation.status != 'approved':
             raise ValidationError(
                 "Only approved quotations can be converted into Sales Orders."
             )
 
+        # Auto-set customer from quotation
         self.instance.customer = quotation.customer
 
         return cleaned_data
