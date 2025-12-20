@@ -1,33 +1,139 @@
 {% extends 'sales/base_sales.html' %}
+{% load static %}
 {% block sales_child %}
 
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-<div class="page-header">
-<h3>Sales Orders</h3>
+<!-- ================= PAGE HEADER ================= -->
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold">Sales Orders</h3>
 </div>
 
+<!-- ================= ORDERS TABLE ================= -->
+<table class="table table-bordered table-hover align-middle shadow-sm">
+    <thead class="table-dark">
+        <tr>
+            <th>#</th>
+            <th>Customer</th>
+            <th>Quotation</th>
+            <th>Status</th>
+            <th class="text-center" style="width: 160px;">Actions</th>
+        </tr>
+    </thead>
 
-<table class="data-table">
-<thead>
-<tr>
-<th>#</th><th>Customer</th><th>Quotation</th><th>Status</th><th>Actions</th>
-</tr>
-</thead>
-<tbody>
-{% for o in orders %}
-<tr>
-<td>{{ o.pk }}</td>
-<td>{{ o.customer.name }}</td>
-<td>#{{ o.quotation.pk }}</td>
-<td>{{ o.status|title }}</td>
-<td class="actions">
-<a href="{% url 'sales:order_update' o.pk %}" class="btn-edit">Edit</a>
-<a href="{% url 'sales:order_delete' o.pk %}" class="btn-delete">Delete</a>
-</td>
-</tr>
-{% empty %}
-<tr><td colspan="5">No orders</td></tr>
-{% endfor %}
-</tbody>
+    <tbody>
+        {% for o in orders %}
+        <tr>
+            <td class="fw-semibold">#{{ o.pk }}</td>
+            <td>{{ o.customer.name }}</td>
+
+            <td>
+                {% if o.quotation %}
+                    #{{ o.quotation.pk }}
+                {% else %}
+                    —
+                {% endif %}
+            </td>
+
+            <td>
+                <span class="status-badge {{ o.status }}">
+                    {{ o.status|title }}
+                </span>
+            </td>
+
+            <!-- ACTION BUTTONS (FIXED VISIBILITY) -->
+            <td class="actions-cell">
+                <a href="{% url 'sales:order_update' o.pk %}"
+                   class="action-btn edit-btn"
+                   title="Edit Order">
+                    <i class="bi bi-pencil"></i>
+                </a>
+
+                <a href="{% url 'sales:order_delete' o.pk %}"
+                   class="action-btn delete-btn"
+                   title="Delete Order"
+                   onclick="return confirm('Are you sure you want to delete this order?');">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </td>
+        </tr>
+
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+                No orders found
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
 </table>
+
+<!-- ================= CUSTOM STYLES (DO NOT REMOVE) ================= -->
+<style>
+/* STATUS BADGES */
+.status-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+.status-badge.pending {
+    background: #facc15;
+    color: #000;
+}
+.status-badge.confirmed {
+    background: #3b82f6;
+    color: #fff;
+}
+.status-badge.completed {
+    background: #16a34a;
+    color: #fff;
+}
+.status-badge.cancelled {
+    background: #dc2626;
+    color: #fff;
+}
+
+/* ACTION CELL */
+.actions-cell {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* BASE ACTION BUTTON */
+.action-btn {
+    width: 34px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    color: #fff !important;
+    text-decoration: none !important;
+    font-size: 14px;
+}
+
+/* EDIT BUTTON */
+.edit-btn {
+    background: #f59e0b !important;
+}
+.edit-btn:hover {
+    background: #d97706 !important;
+}
+
+/* DELETE BUTTON */
+.delete-btn {
+    background: #dc2626 !important;
+}
+.delete-btn:hover {
+    background: #b91c1c !important;
+}
+
+/* ROW HOVER */
+.table-hover tbody tr:hover {
+    background-color: #f1f5f9;
+}
+</style>
+
 {% endblock %}

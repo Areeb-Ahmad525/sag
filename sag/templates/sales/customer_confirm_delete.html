@@ -1,0 +1,140 @@
+{% extends 'sales/base_sales.html' %}
+{% load static %}
+{% block sales_child %}
+
+<div class="delete-wrapper">
+    <div class="delete-card">
+
+        <!-- HEADER -->
+        <div class="delete-header">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <h4>Confirm Delete</h4>
+        </div>
+
+        <!-- BODY -->
+        <div class="delete-body">
+            <p>
+                You are about to permanently delete this customer:
+            </p>
+
+            <div class="customer-name">
+                {{ object.name }}
+            </div>
+
+            <p class="warning-text">
+                This action cannot be undone.
+            </p>
+
+            <form method="post" class="delete-actions">
+                {% csrf_token %}
+
+                <button type="submit" class="btn-delete-confirm">
+                    <i class="bi bi-trash"></i> Yes, Delete
+                </button>
+
+                <a href="{% url 'sales:customer_list' %}" class="btn-cancel">
+                    Cancel
+                </a>
+            </form>
+        </div>
+
+    </div>
+</div>
+
+<!-- ================= STYLES ================= -->
+<style>
+.delete-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 80px;
+}
+
+.delete-card {
+    width: 100%;
+    max-width: 420px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+    overflow: hidden;
+}
+
+/* HEADER */
+.delete-header {
+    background: linear-gradient(135deg, #dc2626, #b91c1c);
+    color: #fff;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.delete-header i {
+    font-size: 22px;
+}
+.delete-header h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+/* BODY */
+.delete-body {
+    padding: 25px;
+    text-align: center;
+}
+.delete-body p {
+    margin-bottom: 10px;
+    color: #374151;
+}
+
+/* CUSTOMER NAME */
+.customer-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #dc2626;
+    margin: 12px 0;
+}
+
+/* WARNING */
+.warning-text {
+    font-size: 13px;
+    color: #6b7280;
+    margin-bottom: 20px;
+}
+
+/* ACTIONS */
+.delete-actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 10px;
+}
+
+/* DELETE BUTTON */
+.btn-delete-confirm {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: #fff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+}
+.btn-delete-confirm:hover {
+    background: linear-gradient(135deg, #b91c1c, #dc2626);
+}
+
+/* CANCEL BUTTON */
+.btn-cancel {
+    background: #e5e7eb;
+    color: #111827;
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    font-weight: 500;
+}
+.btn-cancel:hover {
+    background: #d1d5db;
+}
+</style>
+
+{% endblock %}

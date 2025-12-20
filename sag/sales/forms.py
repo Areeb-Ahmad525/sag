@@ -25,6 +25,10 @@ class CustomerForm(forms.ModelForm):
         ]
 
 
+from django import forms
+from .models import Quotation
+
+
 # QUOTATION FORM
 class QuotationForm(forms.ModelForm):
     class Meta:
@@ -35,25 +39,73 @@ class QuotationForm(forms.ModelForm):
             'notes',
         ]
 
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
 
-# QUOTATION ITEM FORM
+        # Allow only safe statuses from form
+        self.fields['status'].choices = [
+            ('draft', 'Draft'),
+            ('sent', 'Sent'),
+        ]
+
+        # Lock customer after creation
+        if self.instance.pk:
+            self.fields['customer'].disabled = True
+
+
+
 class QuotationItemForm(forms.ModelForm):
     class Meta:
         model = QuotationItem
         fields = [
-            'product',
+            'product_name',
             'description',
             'quantity',
             'unit_price',
         ]
+        widgets = {
+            'product_name': forms.TextInput(attrs={
+                'placeholder': 'Item name (e.g. Window, Door)',
+                'class': 'form-control'
+            }),
+            'description': forms.TextInput(attrs={
+                'placeholder': 'Optional description',
+                'class': 'form-control'
+            }),
+            'quantity': forms.NumberInput(attrs={
+                'min': 1,
+                'class': 'form-control'
+            }),
+            'unit_price': forms.NumberInput(attrs={
+                'min': 0.01,
+                'step': '0.01',
+                'class': 'form-control'
+            }),
+        }
+
+    # VALIDATIONS
+    def clean_quantity(self):
+        quantity = self.cleaned_data.get('quantity')
+        if quantity is None or quantity <= 0:
+            raise forms.ValidationError("Quantity must be greater than 0.")
+        return quantity
+
+    def clean_unit_price(self):
+        price = self.cleaned_data.get('unit_price')
+        if price is None or price <= 0:
+            raise forms.ValidationError("Unit price must be greater than 0.")
+        return price
 
 
+# FORMSET
 QuotationItemFormSet = inlineformset_factory(
     Quotation,
     QuotationItem,
     form=QuotationItemForm,
-    extra=1,
-    can_delete=True
+    extra=0,
+    can_delete=True,
+    min_num=1,
+    validate_min=True
 )
 
 

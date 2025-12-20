@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from django.db import transaction
@@ -9,9 +10,7 @@ from inventory.models import Product
 User = settings.AUTH_USER_MODEL
 
 
-# =========================
 # CUSTOMERS
-# =========================
 class Customer(models.Model):
     """
     Represents both Leads and Customers.
@@ -42,7 +41,7 @@ class Customer(models.Model):
     source = models.CharField(
         max_length=20,
         choices=LEAD_SOURCE_CHOICES,
-        blank=True
+        blank='website'
     )
 
     status = models.CharField(
@@ -61,9 +60,7 @@ class Customer(models.Model):
         return self.name
 
 
-# =========================
 # QUOTATIONS (PRE-SALES)
-# =========================
 class Quotation(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -93,26 +90,44 @@ class Quotation(models.Model):
 
     notes = models.TextField(blank=True)
 
+    # Calculated field (never manual)
     total_price = models.DecimalField(
         max_digits=14,
         decimal_places=2,
-        default=0
+        default=0,
+        editable=False
     )
 
     quotation_date = models.DateTimeField(auto_now_add=True)
     approval_date = models.DateTimeField(null=True, blank=True)
 
+    # BUSINESS LOGIC
     def recalculate_total(self):
-        self.total_price = sum(item.total for item in self.items.all())
+        """
+        Recalculate quotation total from its items.
+        """
+        total = sum(
+            (item.total for item in self.items.all()),
+            Decimal('0.00')
+        )
+        self.total_price = total
         self.save(update_fields=['total_price'])
 
+    def approve(self):
+        """
+        Approve quotation manually.
+        """
+        if self.status != 'sent':
+            raise ValueError("Only sent quotations can be approved.")
+
+        self.status = 'approved'
+        self.approval_date = timezone.now()
+        self.save(update_fields=['status', 'approval_date'])
+
     def __str__(self):
-        return f"Quotation #{self.pk}"
+        return f"Quotation #{self.pk} - {self.customer}"
 
-
-# =========================
 # QUOTATION ITEMS
-# =========================
 class QuotationItem(models.Model):
     quotation = models.ForeignKey(
         Quotation,
@@ -120,14 +135,21 @@ class QuotationItem(models.Model):
         related_name='items'
     )
 
-    product = models.ForeignKey(
-        Product,
-        on_delete=models.PROTECT
+    product_name = models.CharField(
+        max_length=200,
+        help_text="Enter item  (e.g. Door, Window)"
     )
 
-    description = models.CharField(max_length=255, blank=True)
+    description = models.CharField(
+        max_length=255,
+        blank=True
+    )
+
     quantity = models.PositiveIntegerField()
-    unit_price = models.DecimalField(max_digits=12, decimal_places=2)
+    unit_price = models.DecimalField(
+        max_digits=12,
+        decimal_places=2
+    )
 
     total = models.DecimalField(
         max_digits=14,
@@ -135,17 +157,25 @@ class QuotationItem(models.Model):
         editable=False
     )
 
+    # BUSINESS LOGIC
     def save(self, *args, **kwargs):
-        self.total = self.quantity * self.unit_price
+        # calculate item total
+        self.total = Decimal(self.quantity) * self.unit_price
         super().save(*args, **kwargs)
 
+        # keep quotation total in sync
+        if self.quotation_id:
+            self.quotation.recalculate_total()
+
+    def delete(self, *args, **kwargs):
+        quotation = self.quotation
+        super().delete(*args, **kwargs)
+        quotation.recalculate_total()
+
     def __str__(self):
-        return f"QuotationItem #{self.pk}"
+        return f"{self.product_name} × {self.quantity}"
 
-
-# =========================
 # SALES ORDERS (POST-CONFIRMATION)
-# =========================
 class SalesOrder(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),

@@ -16,7 +16,8 @@ urlpatterns = [
     path('quotations/add/', views.quotation_create, name='quotation_create'),
     path('quotations/<int:pk>/edit/', views.quotation_update, name='quotation_update'),
     path('quotations/<int:pk>/delete/', views.quotation_delete, name='quotation_delete'),
-
+    path('quotations/<int:pk>/approve/',views.quotation_approve,name='quotation_approve'),
+    
     # SALES ORDERS
     path('orders/', views.order_list, name='order_list'),
     path('orders/add/', views.order_create, name='order_create'),

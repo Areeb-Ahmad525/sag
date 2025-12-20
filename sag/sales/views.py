@@ -21,7 +21,6 @@ def customer_list(request):
         'customers': Customer.objects.all()
     })
 
-
 def customer_create(request):
     crud = DBCRUD(Customer, CustomerForm)
     result = crud.handle_create(request)
@@ -35,7 +34,6 @@ def customer_create(request):
         'form': result['form']
     })
 
-
 def customer_update(request, pk):
     crud = DBCRUD(Customer, CustomerForm)
     result = crud.handle_update(request, pk)
@@ -48,7 +46,6 @@ def customer_update(request, pk):
     return render(request, 'sales/customer_form.html', {
         'form': result['form']
     })
-
 
 def customer_delete(request, pk):
     crud = DBCRUD(Customer)
@@ -71,7 +68,6 @@ def quotation_list(request):
         'quotations': Quotation.objects.all()
     })
 
-
 @transaction.atomic
 def quotation_create(request):
     crud = DBCRUD(
@@ -84,8 +80,6 @@ def quotation_create(request):
     result = crud.handle_create_with_formset(request)
 
     if result['success']:
-        quotation = result['object']
-        quotation.recalculate_total()
         messages.success(request, 'Quotation created successfully')
         return redirect('sales:quotation_list')
 
@@ -95,9 +89,14 @@ def quotation_create(request):
         'formset': result['formset'],
     })
 
-
 @transaction.atomic
 def quotation_update(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+
+    if quotation.status == 'approved':
+        messages.error(request, 'Approved quotations cannot be edited.')
+        return redirect('sales:quotation_list')
+
     crud = DBCRUD(
         model=Quotation,
         form_class=QuotationForm,
@@ -107,23 +106,15 @@ def quotation_update(request, pk):
     result = crud.handle_update_with_formset(request, pk)
 
     if result['success']:
-        quotation = result['object']
-        quotation.recalculate_total()
-
-        # approval handling
-        if quotation.status == 'approved' and not quotation.approval_date:
-            quotation.approval_date = timezone.now()
-            quotation.save(update_fields=['approval_date'])
-
-            customer = quotation.customer
-            if customer.status != 'converted':
-                customer.status = 'converted'
-                customer.save(update_fields=['status'])
-
         messages.success(request, 'Quotation updated successfully')
         return redirect('sales:quotation_list')
+    
+    if not result['success']:
+        print(result['form'].errors)
+        print(result['formset'].errors)
+        print(result['formset'].non_form_errors())
 
-    messages.error(request, result.get('errors'))
+    messages.error(request, result.get('errors', 'Please fix the errors below.'))
     return render(request, 'sales/quotation_form.html', {
         'form': result['form'],
         'formset': result['formset'],
@@ -131,6 +122,12 @@ def quotation_update(request, pk):
 
 
 def quotation_delete(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+
+    if quotation.status != 'draft':
+        messages.error(request, 'Only draft quotations can be deleted.')
+        return redirect('sales:quotation_list')
+
     crud = DBCRUD(Quotation)
     result = crud.handle_delete(request, pk)
 
@@ -138,10 +135,33 @@ def quotation_delete(request, pk):
         messages.success(request, 'Quotation deleted successfully')
         return redirect('sales:quotation_list')
 
-    messages.error(request, result.get('errors'))
+    messages.error(request, result.get('errors', 'Unable to delete quotation.'))
     return render(request, 'sales/quotation_confirm_delete.html', {
-        'object': result['object']
+        'object': quotation
     })
+
+@transaction.atomic
+def quotation_approve(request, pk):
+    quotation = get_object_or_404(Quotation, pk=pk)
+
+    if quotation.status == 'approved':
+        messages.info(request, 'Quotation is already approved.')
+        return redirect('sales:quotation_list')
+    
+    try:
+        quotation.approve()
+
+        customer = quotation.customer
+        if customer.status != 'converted':
+            customer.status = 'converted'
+            customer.save(update_fields=['status'])
+
+        messages.success(request, 'Quotation approved successfully')
+
+    except ValueError as e:
+        messages.error(request, str(e))
+
+    return redirect('sales:quotation_list')
 
 
 # SALES ORDERS (NO ITEMS)
