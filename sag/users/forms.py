@@ -33,42 +33,45 @@ class UserProfileForm(forms.ModelForm):
 from django import forms
 from .models import Team, UserProfile
 from . import constants
-from django import forms
-from .models import Team, UserProfile
-from . import constants
 
 class TeamForm(forms.ModelForm):
     class Meta:
         model = Team
         fields = ['name', 'manager', 'members']
         widgets = {
+            'manager': forms.Select(attrs={'class': 'manager-select'}), # Added class
             'members': forms.SelectMultiple(attrs={'id': 'id_members_hidden', 'style': 'display:none;'}),
         }
 
     def __init__(self, *args, **kwargs):
         super(TeamForm, self).__init__(*args, **kwargs)
         
-        # Get IDs of everyone already assigned to a team
+        # This still provides the searchable text for the dropdown
+        self.fields['manager'].label_from_instance = self.get_manager_label
+
         already_managed = Team.objects.values_list('manager_id', flat=True)
         already_members = Team.objects.values_list('members', flat=True)
         assigned_ids = set(list(already_managed) + [m for m in already_members if m is not None])
 
-        # Filter Manager: Active + Role Admin/Manager + Not assigned
         manager_qs = UserProfile.objects.filter(
-            role=constants.ROLE_ADMIN, 
+            role=constants.ROLE_MANAGER, 
             status='active'
         ).exclude(id__in=assigned_ids)
 
-        # Filter Members: Active + Role Employee + Not assigned
         member_qs = UserProfile.objects.filter(
             role=constants.ROLE_EMPLOYEE,
             status='active'
         ).exclude(id__in=assigned_ids)
 
-        # If editing, keep current manager and members in the selection
         if self.instance.pk:
             manager_qs = (manager_qs | UserProfile.objects.filter(id=self.instance.manager_id)).distinct()
             member_qs = (member_qs | self.instance.members.all()).distinct()
 
         self.fields['manager'].queryset = manager_qs
         self.fields['members'].queryset = member_qs
+
+
+    def get_manager_label(self, obj):
+        # We also include the image URL in the label data for JS to grab
+        img_url = obj.profile_picture.url if obj.profile_picture else ""
+        return f"{obj.name}|S/O: {obj.father_name or 'N/A'}|{obj.user.email}|{img_url}"

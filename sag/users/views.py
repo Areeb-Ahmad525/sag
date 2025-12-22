@@ -200,7 +200,6 @@ def change_password(request):
 
 from .models import Team
 from .forms import TeamForm
-from . import constants
 
 # # Helper to check if user is HR
 # def is_hr(user):

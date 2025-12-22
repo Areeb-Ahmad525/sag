@@ -2,24 +2,23 @@
 {% load static %}
 
 {% block team_child %}
-<link rel="stylesheet" href="{% static 'css/pr_detail.css' %}">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <div class="wrapper">
-    <div class="pr-header">
-        <h3>{{ title|default:"Manage Team" }}</h3>
-    </div>
+    <div class="pr-header"><h3>Manage Team</h3></div>
 
-    <div class="collapsible-content" style="max-height: unset; padding: 20px;">
+    <div class="collapsible-content" style="padding: 20px;">
         <form method="post" id="teamForm">
             {% csrf_token %}
             
-            <div class="form-row" style="margin-bottom: 20px;">
+            <div class="form-row" style="margin-bottom: 25px;">
                 <label>Team Name:</label>
                 {{ form.name }}
             </div>
-            <div class="form-row" style="margin-bottom: 20px;">
-                <label>Select Manager:</label>
+
+            <div class="form-row" style="margin-bottom: 25px;">
+                <label>Select Manager (Type to Search):</label>
                 {{ form.manager }}
             </div>
 
@@ -28,136 +27,132 @@
             <h4>Assign Members</h4>
             <div class="selection-container">
                 <div class="selection-box">
-                    <input type="text" id="memberSearch" placeholder="Search by name, ID, or role..." class="search-input">
+                    <input type="text" id="memberSearch" placeholder="Search members..." class="search-input">
                     <ul id="availableList" class="member-list">
                         {% for profile in form.fields.members.queryset %}
                             <li data-id="{{ profile.id }}" class="member-item">
-                                <span>{{ profile.name }} ({{ profile.user.email }})</span>
+                                <div class="member-profile-wrapper">
+                                    {% if profile.profile_picture %}
+                                        <img src="{{ profile.profile_picture.url }}" class="member-avatar">
+                                    {% else %}
+                                        <div class="member-avatar-placeholder"><i class="fa fa-user"></i></div>
+                                    {% endif %}
+                                    <span class="member-details">
+                                        <strong class="member-name">{{ profile.name }}</strong>
+                                        <small>S/O: {{ profile.father_name|default:"N/A" }}</small>
+                                        <small class="member-email">{{ profile.user.email }}</small>
+                                    </span>
+                                </div>
                                 <button type="button" class="add-btn"><i class="fa fa-plus"></i></button>
                             </li>
                         {% endfor %}
                     </ul>
                 </div>
-
-                <div class="selection-divider">
-                    <i class="fa fa-exchange-alt"></i>
-                </div>
-
+                <div class="selection-divider"><i class="fa fa-exchange-alt"></i></div>
                 <div class="selection-box">
-                    <label>Selected Members:</label>
-                    <ul id="selectedList" class="member-list selected">
-                        </ul>
+                    <div class="box-label">Selected Members</div>
+                    <ul id="selectedList" class="member-list selected"></ul>
                 </div>
             </div>
 
             {{ form.members }}
 
             <div class="actions" style="margin-top: 30px;">
-                <button type="submit" class="header-btn active">
-                    <i class="fa fa-save"></i> Save Team
-                </button>
-                <a href="{% url 'team_list' %}" class="header-btn">
-                    <i class="fa fa-arrow-left"></i> Back
-                </a>
+                <button type="submit" class="header-btn active">Save Team</button>
             </div>
         </form>
     </div>
 </div>
 
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <style>
-    .selection-container { display: flex; gap: 20px; align-items: start; margin-top: 15px; }
-    .selection-box { flex: 1; border: 1px solid #ddd; border-radius: 8px; height: 300px; display: flex; flex-direction: column; background: #fff; }
-    .search-input { padding: 10px; border: none; border-bottom: 1px solid #ddd; outline: none; width: 100%; box-sizing: border-box; }
+    /* Select2 Custom Styles */
+    .select2-container--default .select2-selection--single { height: 50px; padding: 10px; border: 1px solid #ccc; }
+    .manager-option-img { width: 35px; height: 35px; border-radius: 50%; margin-right: 10px; vertical-align: middle; border: 1px solid #ddd; }
+    .manager-text-box { display: inline-block; vertical-align: middle; line-height: 1.2; }
+    
+    /* Existing Styles */
+    .selection-container { display: flex; gap: 20px; align-items: stretch; margin-top: 15px; }
+    .selection-box { flex: 1; border: 1px solid #ddd; border-radius: 8px; height: 350px; display: flex; flex-direction: column; background: #fff; overflow: hidden; }
+    .box-label { background: #f8f9fa; padding: 10px; border-bottom: 1px solid #ddd; font-weight: bold; }
     .member-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex-grow: 1; }
-    .member-item { padding: 10px; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
-    .member-item:hover { background-color: #f0f7ff; }
-    .add-btn { background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 2px 8px; }
-    .remove-btn { background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer; padding: 2px 8px; }
-    .selection-divider { align-self: center; color: #ccc; font-size: 24px; }
-    .member-list.selected { background: #fafafa; }
+    .member-item { padding: 10px; border-bottom: 1px solid #f5f5f5; display: flex; justify-content: space-between; align-items: center; }
+    .member-profile-wrapper { display: flex; align-items: center; gap: 10px; }
+    .member-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .member-avatar-placeholder { width: 40px; height: 40px; border-radius: 50%; background: #eee; display: flex; align-items: center; justify-content: center; color: #999; }
+    .member-details { display: flex; flex-direction: column; font-size: 12px; }
+    .add-btn, .remove-btn { padding: 5px 10px; border: none; border-radius: 4px; color: #fff; cursor: pointer; }
+    .add-btn { background: #28a745; } .remove-btn { background: #dc3545; }
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('memberSearch');
+$(document).ready(function() {
+    // Initialize Select2 for Manager
+    function formatManager(state) {
+        if (!state.id) return state.text;
+        const data = state.text.split('|'); // Split the label we made in forms.py
+        const name = data[0], father = data[1], email = data[2], img = data[3];
+        
+        const imgHtml = img ? `<img src="${img}" class="manager-option-img">` : `<div class="manager-option-img" style="display:inline-flex; align-items:center; justify-content:center; background:#eee;"><i class="fa fa-user" style="color:#999"></i></div>`;
+        
+        return $(`
+            <div style="display:flex; align-items:center;">
+                ${imgHtml}
+                <div class="manager-text-box">
+                    <div style="font-weight:bold; font-size:14px;">${name}</div>
+                    <div style="font-size:11px; color:#666;">${father} • ${email}</div>
+                </div>
+            </div>
+        `);
+    }
+
+    $('.manager-select').select2({
+        templateResult: formatManager,
+        templateSelection: formatManager,
+        placeholder: "Search by typing name, father name or email...",
+        allowClear: true,
+        width: '100%'
+    });
+
+    // --- Member Selection JS (Same Logic) ---
     const availableList = document.getElementById('availableList');
     const selectedList = document.getElementById('selectedList');
     const hiddenSelect = document.getElementById('id_members_hidden');
 
-    // 1. Search Functionality
-    searchInput.addEventListener('keyup', function() {
-        const filter = searchInput.value.toLowerCase();
-        const items = availableList.getElementsByClassName('member-item');
-        Array.from(items).forEach(item => {
-            const text = item.textContent.toLowerCase();
-            item.style.display = text.includes(filter) ? '' : 'none';
+    $('#memberSearch').on('keyup', function() {
+        const val = $(this).val().toLowerCase();
+        $('#availableList .member-item').each(function() {
+            $(this).toggle($(this).text().toLowerCase().includes(val));
         });
     });
 
-    // 2. Add Member Logic
     availableList.addEventListener('click', function(e) {
         if (e.target.closest('.add-btn')) {
             const item = e.target.closest('.member-item');
             const id = item.getAttribute('data-id');
-            const name = item.querySelector('span').textContent;
-
-            // Move to Selected List
-            moveToSelected(id, name, item);
+            const content = item.querySelector('.member-profile-wrapper').innerHTML;
+            
+            const li = document.createElement('li');
+            li.className = 'member-item';
+            li.setAttribute('data-id', id);
+            li.innerHTML = `<div class="member-profile-wrapper">${content}</div> <button type="button" class="remove-btn"><i class="fa fa-times"></i></button>`;
+            selectedList.appendChild(li);
+            
+            item.style.display = 'none';
+            item.classList.add('is-selected');
+            $(`#id_members_hidden option[value="${id}"]`).prop('selected', true);
         }
     });
 
-    // 3. Remove Member Logic
     selectedList.addEventListener('click', function(e) {
         if (e.target.closest('.remove-btn')) {
             const item = e.target.closest('.member-item');
             const id = item.getAttribute('data-id');
-            const name = item.querySelector('span').textContent;
-
-            moveToAvailable(id, name, item);
-        }
-    });
-
-    function moveToSelected(id, name, originalItem) {
-        // Create selected item element
-        const li = document.createElement('li');
-        li.className = 'member-item';
-        li.setAttribute('data-id', id);
-        li.innerHTML = `<span>${name}</span> <button type="button" class="remove-btn"><i class="fa fa-times"></i></button>`;
-        selectedList.appendChild(li);
-
-        // Hide from available
-        originalItem.style.display = 'none';
-        originalItem.classList.add('is-selected');
-
-        // Update Hidden Django Select
-        Array.from(hiddenSelect.options).forEach(opt => {
-            if (opt.value === id) opt.selected = true;
-        });
-    }
-
-    function moveToAvailable(id, name, selectedItem) {
-        // Remove from selected list
-        selectedItem.remove();
-
-        // Show back in available list
-        const original = availableList.querySelector(`.member-item[data-id="${id}"]`);
-        original.style.display = '';
-        original.classList.remove('is-selected');
-
-        // Update Hidden Django Select
-        Array.from(hiddenSelect.options).forEach(opt => {
-            if (opt.value === id) opt.selected = false;
-        });
-    }
-
-    // Initialize: If editing, move current members to selected list
-    Array.from(hiddenSelect.options).forEach(opt => {
-        if (opt.selected) {
-            const original = availableList.querySelector(`.member-item[data-id="${opt.value}"]`);
-            if (original) {
-                const name = original.querySelector('span').textContent;
-                moveToSelected(opt.value, name, original);
-            }
+            $(`.member-item[data-id="${id}"]`).show().removeClass('is-selected');
+            item.remove();
+            $(`#id_members_hidden option[value="${id}"]`).prop('selected', false);
         }
     });
 });
