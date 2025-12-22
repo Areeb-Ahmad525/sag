@@ -1,0 +1,42 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+{% extends 'production/production_base.html' %}
+
+{% block production_child %}
+
+<h2 class="mb-4">Production Stages Logs</h2>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+        <tr>
+            <th>Work Order</th>
+            <th>Product</th>
+            <th>Stage</th>
+            <th>Status</th>
+            <th>Started At</th>
+            <th>Completed At</th>
+            <th>Remarks</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for log in logs %}
+        <tr>
+            <td>
+                <a href="{% url 'production:wo_detail' log.work_order.id %}"style="color: blue;">
+                    WO#{{ log.work_order.work_order_number }}
+                </a>
+            </td>
+            <td>{{ log.work_order.product.name }}</td>
+            <td>{{ log.stage.name }}</td>
+            <td>{{ log.status }}</td>
+            <td>{{ log.started_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ log.completed_at|date:"Y-m-d H:i" }}</td>
+            <td>{{ log.remarks }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center">No stage logs found.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

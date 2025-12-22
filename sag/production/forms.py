@@ -7,7 +7,15 @@ from .models import (
     ProductionOutput,
     ProductionWastage,
 )
+from .models import ProductionStage
 
+class ProductionStageForm(forms.ModelForm):
+    class Meta:
+        model = ProductionStage
+        fields = ['name', 'description', 'sequence_no', 'is_active']
+        widgets = {
+            'description': forms.Textarea(attrs={'rows': 3}),
+        }
 
 # WORK ORDER FORM
 

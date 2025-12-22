@@ -4,12 +4,9 @@ from django.contrib import messages
 from django.db import transaction
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
-from django.shortcuts import render
-from django.contrib.auth.decorators import login_required
-from users.decorators import role_required
 from production.models import ProductionTask
-
 from users.decorators import role_required
+from django.db.models import Count
 from inventory.models import InventoryBatch, StockMovement
 from django.db.models import F, Sum
 
@@ -20,6 +17,8 @@ from .models import (
     ProductionOutput,
     FinishedProductBatch,
     ProductionWastage,
+    ProductionStage,
+    ProductionStageLog,
 )
 
 from .forms import (
@@ -28,15 +27,13 @@ from .forms import (
     ConsumptionForm,
     OutputForm,
     WastageForm,
+    ProductionStageForm,
 )
 
 
 # DASHBOARD
 
-from django.db.models import Count
 
-from django.db.models import Count
-from django.utils import timezone
 
 @login_required
 @role_required(['production', 'admin', 'manager'])
@@ -93,8 +90,20 @@ def production_index(request):
 @role_required(['production', 'admin'])
 def wo_list(request):
     wos = WorkOrder.objects.select_related('product', 'warehouse').order_by('-created_at')
+    
+    search_query = request.GET.get('search', '')
+    status_filter = request.GET.get('status', '')
+    
+    if search_query:
+        wos = wos.filter(work_order_number__icontains=search_query)
+    if status_filter:
+        wos = wos.filter(status=status_filter)
+    
+    # If AJAX request, render only the table rows
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'production/wo_list.html', {'wos': wos})
+    
     return render(request, 'production/wo_list.html', {'wos': wos})
-
 
 @login_required
 @role_required(['production', 'admin'])
@@ -119,8 +128,8 @@ def wo_update(request, wo_id):
     wo = get_object_or_404(WorkOrder, pk=wo_id)
 
     if wo.status != 'planned':
-        messages.error(request, "Only planned work orders can be edited.")
-        return redirect('production:wo_detail', wo_id=wo.id)
+        messages.error(request, "Only planned work orders can be Edited.")
+        return redirect('production:wo_list')
 
     if request.method == 'POST':
         form = WorkOrderForm(request.POST, instance=wo)
@@ -141,7 +150,7 @@ def wo_delete(request, wo_id):
     wo = get_object_or_404(WorkOrder, pk=wo_id)
 
     if wo.tasks.exists():
-        messages.error(request, "Cannot delete a work order with tasks.")
+        messages.error(request, "Cannot delete a work order with Tasks.")
         return redirect('production:wo_detail', wo_id=wo.id)
 
     wo.delete()
@@ -151,17 +160,6 @@ def wo_delete(request, wo_id):
 
 
 # WORK ORDER DETAIL
-
-from django.db.models import Sum
-
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.db.models import Sum
-from users.decorators import role_required
-
-from .models import WorkOrder
-from .forms import ProductionTaskForm, ConsumptionForm, OutputForm, WastageForm
-
 @login_required
 @role_required(['production', 'admin', 'manager'])
 def wo_detail(request, wo_id):
@@ -175,29 +173,37 @@ def wo_detail(request, wo_id):
     # Calculate produced, remaining, and progress %
     produced_qty = wo.outputs.aggregate(total=Sum('quantity_produced'))['total'] or 0
     remaining_qty = max(wo.quantity_to_produce - produced_qty, 0)
-    progress_percent = 0
-    if wo.quantity_to_produce > 0:
-        progress_percent = round((produced_qty / wo.quantity_to_produce) * 100, 2)
+    progress_percent = round((produced_qty / wo.quantity_to_produce) * 100, 2) if wo.quantity_to_produce > 0 else 0
 
-    # Prepare form sections for template
+    # Prepare form sections with dynamic URLs
     form_sections = [
+        {
+            'name': 'Tasks',
+            'form': ProductionTaskForm(),
+            'icon': 'fa-arrow-up',
+            'btn_text': 'Add Task',
+            'url_name': 'production:task_create',
+        },
         {
             'name': 'Consumption',
             'form': ConsumptionForm(),
             'icon': 'fa-arrow-up',
-            'btn_text': 'Record Consumption'
+            'btn_text': 'Record Consumption',
+            'url_name': 'production:consumption_create',
         },
         {
             'name': 'Output',
             'form': OutputForm(),
             'icon': 'fa-plus',
-            'btn_text': 'Add Output'
+            'btn_text': 'Add Output',
+            'url_name': 'production:output_create',
         },
         {
             'name': 'Wastage',
             'form': WastageForm(),
             'icon': 'fa-trash',
-            'btn_text': 'Add Wastage'
+            'btn_text': 'Add Wastage',
+            'url_name': 'production:wastage_create',
         }
     ]
 
@@ -310,22 +316,6 @@ def task_delete(request, task_id):
     task.delete()
     messages.success(request, "Task deleted.")
     return redirect('production:wo_detail', wo_id=wo_id)
-
-
-
-@login_required
-@role_required(['manager', 'admin'])
-def task_list(request):
-    """
-    Display a list of all tasks across work orders.
-    """
-    # Fetch all tasks and prefetch related WorkOrder and assigned user to reduce queries
-    tasks = ProductionTask.objects.select_related('work_order', 'assigned_to', 'stage').order_by('-created_at')
-
-    return render(request, 'production/task_list.html', {
-        'tasks': tasks,
-    })
-
 
 
 # RAW MATERIAL CONSUMPTION
@@ -472,3 +462,66 @@ def wastage_create(request, wo_id):
         form = WastageForm()
 
     return render(request, 'production/wastage_form.html', {'form': form})
+
+
+# LIST
+@login_required
+@role_required(['admin', 'manager'])
+def stage_list(request):
+    stages = ProductionStage.objects.order_by('sequence_no')
+    return render(request, 'production/stage_list.html', {'stages': stages})
+
+# CREATE
+@login_required
+@role_required(['admin', 'manager'])
+def stage_create(request):
+    if request.method == 'POST':
+        form = ProductionStageForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Production stage created.")
+            return redirect('production:stage_list')
+    else:
+        form = ProductionStageForm()
+    return render(request, 'production/stage_form.html', {'form': form, 'title': 'Create Production Stage'})
+
+# UPDATE
+@login_required
+@role_required(['admin', 'manager'])
+def stage_update(request, stage_id):
+    stage = get_object_or_404(ProductionStage, pk=stage_id)
+    if request.method == 'POST':
+        form = ProductionStageForm(request.POST, instance=stage)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Production stage updated.")
+            return redirect('production:stage_list')
+    else:
+        form = ProductionStageForm(instance=stage)
+    return render(request, 'production/stage_form.html', {'form': form, 'title': 'Edit Production Stage'})
+
+# DELETE
+@login_required
+@role_required(['admin'])
+@require_POST
+def stage_delete(request, stage_id):
+    stage = get_object_or_404(ProductionStage, pk=stage_id)
+    if stage.productiontask_set.exists():
+        messages.error(request, "Cannot delete stage linked to tasks.")
+    else:
+        stage.delete()
+        messages.success(request, "Production stage deleted.")
+    return redirect('production:stage_list')
+
+@login_required
+@role_required(['production', 'admin', 'manager'])
+def all_stage_logs(request):
+    """
+    Display all ProductionStageLog entries for all WorkOrders
+    """
+    logs = ProductionStageLog.objects.select_related('work_order', 'stage').order_by('work_order__created_at', 'stage__sequence_no')
+
+    context = {
+        'logs': logs,
+    }
+    return render(request, 'production/all_stage_logs.html', context)

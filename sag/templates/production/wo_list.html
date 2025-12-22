@@ -3,12 +3,29 @@
 
 {% block production_child %}
 
-<h2 class="mb-4">Work Orders</h2>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h2>Work Orders</h2>
+
+    <div class="d-flex align-items-center gap-2">
+        <!-- Search & Filter -->
+        <input type="text" id="searchInput" class="form-control form-control-sm" placeholder="Search WO #" value="{{ request.GET.search }}">
+        <select id="statusFilter" class="form-select form-select-sm">
+            <option value="">All</option>
+            <option value="planned" {% if request.GET.status == "planned" %}selected{% endif %}>Planned</option>
+            <option value="in_progress" {% if request.GET.status == "in_progress" %}selected{% endif %}>In Progress</option>
+            <option value="completed" {% if request.GET.status == "completed" %}selected{% endif %}>Completed</option>
+        </select>
+    
+    </div>
+</div>
+<a href="{% url 'production:wo_create' %}" class="btn btn-success btn-sm ms-2">
+            <i class="bi bi-plus-circle me-1"></i> Add Work Order
+        </a>
 
 <table class="table table-bordered table-striped">
     <thead class="table-dark">
         <tr>
-            <th>ID</th>
+            <th>WO #</th>
             <th>Product</th>
             <th>Warehouse</th>
             <th>Quantity</th>
@@ -17,73 +34,75 @@
             <th>Actions</th>
         </tr>
     </thead>
-
-    <tbody>
+    <tbody id="woTableBody">
         {% for wo in wos %}
         <tr>
-            <td>{{ wo.id }}</td>
+            <td>{{ wo.work_order_number }}</td>
             <td>{{ wo.product }}</td>
             <td>{{ wo.warehouse }}</td>
             <td>{{ wo.quantity_to_produce }}</td>
-            <td>{{ wo.get_status_display }}</td>
+            <td>
+                {% if wo.status == 'planned' %}
+                    <span class="badge bg-primary">{{ wo.get_status_display }}</span>
+                {% elif wo.status == 'in_progress' %}
+                    <span class="badge bg-warning text-dark">{{ wo.get_status_display }}</span>
+                {% elif wo.status == 'completed' %}
+                    <span class="badge bg-success">{{ wo.get_status_display }}</span>
+                {% endif %}
+            </td>
             <td>{{ wo.created_at|date:"Y-m-d" }}</td>
             <td>
-                <!-- View Button -->
                 <a href="{% url 'production:wo_detail' wo.id %}" class="btn btn-sm btn-info text-white" title="View">
                     <i class="bi bi-eye"></i>
                 </a>
-
-                <!-- Start Button -->
-                <form method="post" action="{% url 'production:wo_start' wo.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    {% if wo.status == 'planned' %}
-                        <button type="submit" class="btn btn-sm btn-warning text-white" title="Start">
-                            <i class="bi bi-play-fill"></i>
-                        </button>
-                    {% else %}
-                        <button type="button" class="btn btn-sm btn-warning text-white" disabled title="Start">
-                            <i class="bi bi-play-fill"></i>
-                        </button>
-                    {% endif %}
-                </form>
-
-                <!-- Complete Button -->
-                <form method="post" action="{% url 'production:wo_complete' wo.id %}" style="display:inline;">
-                    {% csrf_token %}
-                    {% if wo.status == 'in_progress' %}
-                        <button type="submit" class="btn btn-sm btn-success text-white" title="Complete">
-                            <i class="bi bi-check-circle-fill"></i>
-                        </button>
-                    {% else %}
-                        <button type="button" class="btn btn-sm btn-success text-white" disabled title="Complete">
-                            <i class="bi bi-check-circle-fill"></i>
-                        </button>
-                    {% endif %}
-                </form>
-
-                <!-- Edit Button (Admin only) -->
-                
                 <a href="{% url 'production:wo_update' wo.id %}" class="btn btn-sm btn-primary" title="Edit">
                     <i class="bi bi-pencil-fill"></i>
                 </a>
-
-                <!-- Delete Button (Admin only) -->
-                <form method="post" action="{% url 'production:wo_delete' wo.id %}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this work order?');">
+                <form method="post" action="{% url 'production:wo_delete' wo.id %}" style="display:inline;" onsubmit="return confirm('Are you sure?');">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-sm btn-danger" title="Delete">
                         <i class="bi bi-trash-fill"></i>
                     </button>
                 </form>
-               
-
             </td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="7" class="text-center text-muted">No work orders found.</td>
         </tr>
         {% endfor %}
     </tbody>
-
 </table>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+$(document).ready(function() {
+    function fetchWOs() {
+        const search = $('#searchInput').val();
+        const status = $('#statusFilter').val();
 
-<!-- Bootstrap Icons CDN (if not already included) -->
+        $.ajax({
+            url: "{% url 'production:wo_list' %}",
+            type: "GET",
+            data: { search: search, status: status },
+            success: function(data) {
+                const newTableBody = $(data).find('#woTableBody').html();
+                $('#woTableBody').html(newTableBody);
+            }
+        });
+    }
+
+    $('#searchInput').on('input', function() {
+        fetchWOs();
+    });
+
+    $('#statusFilter').on('change', function() {
+        fetchWOs();
+    });
+});
+</script>
+
+
+<!-- Bootstrap Icons CDN -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
 {% endblock %}

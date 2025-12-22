@@ -24,8 +24,18 @@ urlpatterns = [
     path('tasks/<int:task_id>/start/', views.task_start, name='task_start'),
     path('tasks/<int:task_id>/complete/', views.task_complete, name='task_complete'),
     path('tasks/<int:task_id>/delete/', views.task_delete, name='task_delete'),
+    
+    #Production Stage
+    path('stages/', views.stage_list, name='stage_list'),
+    path('stages/create/', views.stage_create, name='stage_create'),
+    path('stages/<int:stage_id>/edit/', views.stage_update, name='stage_update'),
+    path('stages/<int:stage_id>/delete/', views.stage_delete, name='stage_delete'),
+    
+    path('stage-logs/', views.all_stage_logs, name='all_stage_logs'),
 
-    path('tasks/', views.task_list, name='task_list'),
+
+
+   
 
 
     # CONSUMPTION

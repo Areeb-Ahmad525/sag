@@ -197,6 +197,11 @@ class ProductionTask(models.Model):
         self.status = 'in_progress'
         self.started_at = timezone.now()
         self.save(update_fields=['status', 'started_at'])
+        wo = self.work_order
+        if wo.status == 'planned':
+            wo.status = 'in_progress'
+            wo.start_date = timezone.now().date()
+            wo.save(update_fields=['status', 'start_date'])
 
         if self.stage:
             ProductionStageLog.objects.update_or_create(
