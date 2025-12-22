@@ -12,7 +12,7 @@ ROLE_CHOICES = (
     (constants.ROLE_SALES, "Sales"),
     (constants.ROLE_PRODUCTION, "Production"),
     (constants.ROLE_QC, "QC"),
-    (constants.ROLE_LOGISTICS, "Logistics"),
+    (constants.ROLE_MANAGER, "Manager"),
     (constants.ROLE_FINANCE, "Finance"),
     (constants.ROLE_EMPLOYEE, "Employee"),
     (constants.ROLE_SWEEPER, "Sweeper"),
