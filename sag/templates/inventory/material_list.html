@@ -1,71 +1,76 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 {% extends 'inventory/inventory_base.html' %}
 {% load static %}
 
 {% block inventory_child %}
 
-<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-<div class="wrapper">
+<!-- ================= PAGE HEADER ================= -->
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold">Raw Materials</h3>
 
-    <!-- Header Section -->
-    <div class="header">
-        <h2>Raw Material List</h2>
-
-        <a href="/inventory/materials/create/" class="btn-add">
-            <span class="plus-icon">+</span> Add Material
-        </a>
-    </div>
-
-    <!-- Table Section -->
-    <div class="table-container">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Category</th>
-                    <th>Unit</th>
-                    <th>Size</th>
-                    <th>Thickness</th>
-                    <th>Colour</th>
-                    <th>Reorder Level</th>
-                    <th>Supplier</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for m in materials %}
-                <tr>
-                    <td>{{ m.type_name }}</td>
-                    <td>{{ m.category }}</td>
-                    <td>{{ m.unit }}</td>
-                    <td>{{ m.size }}</td>
-                    <td>{{ m.thickness }}</td>
-                    <td>{{ m.colour }}</td>
-                    <td>{{ m.reorder_level }}</td>
-                    <td>{{ m.supplier }}</td>
-                    
-
-                    <td class="actions">
-                        <a href="/inventory/materials/edit/{{ m.id }}/" class="edit-btn" title="Edit">
-                            <i class="fa fa-pencil"></i>
-                        </a>
-
-                        <!-- <a href="/inventory/materials/delete/{{ m.id }}/" class="delete-btn" title="Delete"> -->
-                            <!-- <i class="fa fa-trash"></i>
-                        </a> -->
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-
+    <a href="/inventory/materials/create/" class="btn btn-success btn-sm ms-2">
+        <i class="bi bi-plus-circle me-1"></i> Add Material
+    </a>
 </div>
 
-<!-- FontAwesome Icons -->
-<link rel="stylesheet" 
-      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<!-- ================= RAW MATERIAL TABLE ================= -->
+<table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Unit</th>
+            <th>Size</th>
+            <th>Thickness</th>
+            <th>Colour</th>
+            <th>Reorder Level</th>
+            <th>Supplier</th>
+            <th style="width: 200px;">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        {% for m in materials %}
+        <tr>
+            <td class="fw-semibold">{{ m.type_name }}</td>
+            <td>{{ m.category }}</td>
+            <td>{{ m.unit }}</td>
+            <td>{{ m.size }}</td>
+            <td>{{ m.thickness }}</td>
+            <td>{{ m.colour }}</td>
+            <td>{{ m.reorder_level }}</td>
+            <td>{{ m.supplier }}</td>
+
+            <td>
+                <!-- EDIT -->
+                <a href="{% url 'inventory:edit_raw' m.id %}"
+                   class="btn btn-sm btn-warning me-1">
+                    Edit
+                </a>
+
+                <!-- DELETE -->
+                <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteConfirmModal"
+                    data-delete-url="{% url 'inventory:delete_raw' m.id %}"
+                    data-object-name="{{ m.type_name }}">
+                    Delete
+                </button>
+            </td>
+        </tr>
+
+        {% empty %}
+        <tr>
+            <td colspan="9" class="text-center text-muted py-4">
+                No materials found
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}

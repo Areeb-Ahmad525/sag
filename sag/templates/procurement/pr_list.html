@@ -1,75 +1,55 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 {% extends "procurement/base_procurement.html" %}
 {% load static %}
 {% block procurement_child %}
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
-<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
 
-<div class="wrapper">
+<!-- ================= PAGE HEADER ================= -->
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold">Purchase Requests</h3>
 
-    <!-- Header -->
-    <div class="header">
-        <h2>Purchase Requests</h2>
-
-        <!-- <a href="{% url 'procurement:pr_create' %}" class="btn-add">
-            <span class="plus-icon">+</span> Create PR
-        </a> -->
-    </div>
-
-    <!-- Table -->
-    <div class="table-container">
-        <table class="data-table">
-
-            <thead>
-                <tr>
-                    <th>Pr No.</th>
-                    <th>Title</th>
-                    <th>Status</th>
-                    <th>Created</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for pr in prs %}
-                <tr>
-                    <td>{{ pr.pk }}</td>
-                    <td>{{ pr.title }}</td>
-                    <td>{{ pr.get_status_display }}</td>
-                    <td>{{ pr.created_at|date:"Y-m-d H:i" }}</td>
-
-                    <td>
-                        <a href="{% url 'procurement:pr_detail' pr.pk %}"
-                           class="btn btn-primary btn-sm text-white">
-                            <i class="bi bi-eye me-1"></i> View
-                        </a>
-                    </td>
-                </tr>
-
-                {% empty %}
-                <tr>
-                    <td colspan="5">No PRs yet.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-
-        </table>
-    </div>
-
+    <a href="{% url 'procurement:pr_create' %}" class="btn btn-success btn-sm ms-2">
+        <i class="bi bi-plus-circle me-1"></i> Create PR
+    </a>
 </div>
 
+<!-- ================= PURCHASE REQUESTS TABLE ================= -->
+<table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>PR No.</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Created</th>
+            <th style="width: 150px;">Actions</th>
+        </tr>
+    </thead>
 
-<style>
-.data-table a.btn,
-.data-table td a.btn {
-    background-color: #126ffaff !important;
-    color: white !important;
-    border: 1px solid #0d6efd !important;
-    border-radius: 8px;
-    margin-right: 15px;
-    padding: 2px;
-}
-</style>
+    <tbody>
+        {% for pr in prs %}
+        <tr>
+            <td class="fw-semibold">{{ pr.pk }}</td>
+            <td>{{ pr.title }}</td>
+            <td>{{ pr.get_status_display }}</td>
+            <td>{{ pr.created_at|date:"Y-m-d H:i" }}</td>
+
+            <td>
+                <a href="{% url 'procurement:pr_detail' pr.pk %}" 
+                   class="btn btn-primary btn-sm">
+                    <i class="bi bi-eye me-1"></i> View
+                </a>
+            </td>
+        </tr>
+
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+                No PRs yet.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
 
 {% endblock %}

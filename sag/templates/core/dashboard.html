@@ -44,29 +44,25 @@
        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         Dashboard
     </a>
-    <a href="{% url 'procurement:pr_create' %}"
-       class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
-        Purchase Request
-    </a>
     {% with role=request.user.userprofile.role %}
 
     <!-- ADMIN & QC → Full access -->
     {% if role == 'admin' or role == 'qc' %}
 
-        <a href="{% url 'teams_base' %}">Teams Management</a>
-        <a href="{% url 'user_base' %}">Users Management</a>
+        <a href="{% url 'team_list' %}">Teams Management</a>
+        <a href="{% url 'user_list' %}">Users Management</a>
         <a href="{% url 'procurement:procurement_index' %}">Procurement</a>
         <a href="{% url 'inventory:inventory_base' %}">Inventory</a>
         <a href="{% url 'production:production_base' %}">Production</a>
-        <a href="{% url 'sales:sales_base' %}">Sales</a>
-        <a href="{% url 'qualitycheck_base' %}">Quality Check</a>
+        <a href="{% url 'sales:order_list' %}">Sales</a>
+        <a href="{% url 'inspection_list' %}">Quality Check</a>
         <a href="{% url 'attendance:attendance_list' %}">Attendance Management</a>
 
     <!-- HR -->
     {% elif role == 'hr' %}
 
-        <a href="{% url 'teams_base' %}">Teams Management</a>
-        <a href="{% url 'user_base' %}">Users Management</a>
+        <a href="{% url 'team_list' %}">Teams Management</a>
+        <a href="{% url 'user_list' %}">Users Management</a>
         <a href="{% url 'attendance' %}">Attendance Management</a>
 
     <!-- PROCUREMENT -->
@@ -134,6 +130,7 @@
     </div>
 
 </div>
+{% include 'components/delete_confirm_modal.html' %}
 
 </body><!-- Toast container -->
 <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
@@ -212,5 +209,22 @@ document.addEventListener('click', function() {
     userDropdown.classList.remove('active');
 });
 </script>
+<script>
+    const deleteModal = document.getElementById('deleteConfirmModal');
+
+    deleteModal.addEventListener('show.bs.modal', function (event) {
+        const button = event.relatedTarget;
+
+        const deleteUrl = button.getAttribute('data-delete-url');
+        const objectName = button.getAttribute('data-object-name');
+
+        const form = deleteModal.querySelector('#deleteForm');
+        const nameSpan = deleteModal.querySelector('#deleteObjectName');
+
+        form.action = deleteUrl;
+        nameSpan.textContent = objectName;
+    });
+</script>
+
 
 </html>

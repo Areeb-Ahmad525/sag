@@ -2,6 +2,10 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db import transaction
 from django.utils import timezone
+from django.views.decorators.http import require_POST
+
+
+
 from django.contrib.auth.decorators import login_required
 from users.decorators import role_required
 
@@ -47,18 +51,17 @@ def customer_update(request, pk):
         'form': result['form']
     })
 
+@require_POST
 def customer_delete(request, pk):
     crud = DBCRUD(Customer)
     result = crud.handle_delete(request, pk)
 
     if result['success']:
         messages.success(request, 'Customer deleted successfully')
-        return redirect('sales:customer_list')
+    else:
+        messages.error(request, result.get('errors', 'Delete failed'))
 
-    messages.error(request, result.get('errors'))
-    return render(request, 'sales/customer_confirm_delete.html', {
-        'object': result['object']
-    })
+    return redirect('sales:customer_list')
 
 
 # QUOTATION CRUD (WITH ITEMS)
@@ -121,9 +124,11 @@ def quotation_update(request, pk):
     })
 
 
+@require_POST
 def quotation_delete(request, pk):
     quotation = get_object_or_404(Quotation, pk=pk)
 
+    # Business rule stays intact
     if quotation.status != 'draft':
         messages.error(request, 'Only draft quotations can be deleted.')
         return redirect('sales:quotation_list')
@@ -131,14 +136,12 @@ def quotation_delete(request, pk):
     crud = DBCRUD(Quotation)
     result = crud.handle_delete(request, pk)
 
-    if result['success']:
+    if result.get('success'):
         messages.success(request, 'Quotation deleted successfully')
-        return redirect('sales:quotation_list')
+    else:
+        messages.error(request, result.get('errors', 'Unable to delete quotation.'))
 
-    messages.error(request, result.get('errors', 'Unable to delete quotation.'))
-    return render(request, 'sales/quotation_confirm_delete.html', {
-        'object': quotation
-    })
+    return redirect('sales:quotation_list')
 
 @transaction.atomic
 def quotation_approve(request, pk):

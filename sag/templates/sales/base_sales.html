@@ -6,6 +6,11 @@
 <div class="header-buttons-container">
     <div class="header-buttons">
 
+        <a href="{% url 'sales:order_list' %}"
+           class="header-btn {% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
+            Sales Orders
+        </a>
+
         <a href="{% url 'sales:customer_list' %}"
            class="header-btn {% if request.resolver_match.url_name == 'customer_list' %}active{% endif %}">
             Customers
@@ -14,11 +19,6 @@
         <a href="{% url 'sales:quotation_list' %}"
            class="header-btn {% if request.resolver_match.url_name == 'quotation_list' %}active{% endif %}">
             Quotations
-        </a>
-
-        <a href="{% url 'sales:order_list' %}"
-           class="header-btn {% if request.resolver_match.url_name == 'order_list' %}active{% endif %}">
-            Sales Orders
         </a>
 
     </div>

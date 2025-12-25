@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 {% extends 'sales/base_sales.html' %}
 {% load static %}
 {% block sales_child %}
@@ -8,33 +9,41 @@
 <div class="page-header d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold">Quotations</h3>
 
-    <a href="{% url 'sales:quotation_create' %}" class="add-btn">
+    <a href="{% url 'sales:quotation_create' %}" class="btn btn-success btn-sm ms-2">
         <i class="bi bi-plus-circle me-1"></i> New Quotation
     </a>
 </div>
 
 <!-- ================= QUOTATION TABLE ================= -->
-<table class="table table-bordered table-hover align-middle shadow-sm">
+<table class="table table-bordered table-striped align-middle">
     <thead class="table-dark">
         <tr>
-            <th>#</th>
+            <th>Quotation No</th>
             <th>Customer</th>
             <th>Status</th>
             <th>Total</th>
-            <th class="text-center" style="width: 260px;">Actions</th>
+            <th style="width: 260px;">Actions</th>
         </tr>
     </thead>
 
     <tbody>
         {% for q in quotations %}
         <tr>
-            <td class="fw-semibold">#{{ q.pk }}</td>
+            <td class="fw-semibold">{{ q.pk }}</td>
             <td>{{ q.customer.name }}</td>
 
             <td>
-                <span class="status-badge {{ q.status }}">
-                    {{ q.status|title }}
-                </span>
+                {% if q.status == 'draft' %}
+                    <span class="badge bg-secondary">Draft</span>
+                {% elif q.status == 'sent' %}
+                    <span class="badge bg-warning text-dark">Sent</span>
+                {% elif q.status == 'approved' %}
+                    <span class="badge bg-success">Approved</span>
+                {% elif q.status == 'rejected' %}
+                    <span class="badge bg-danger">Rejected</span>
+                {% else %}
+                    <span class="badge bg-primary">{{ q.status|title }}</span>
+                {% endif %}
             </td>
 
             <td class="fw-semibold">
@@ -42,38 +51,38 @@
             </td>
 
             <!-- ACTION BUTTONS -->
-            <td class="actions-cell">
-
+            <td>
                 <!-- EDIT (only if not approved) -->
                 {% if q.status != 'approved' %}
                 <a href="{% url 'sales:quotation_update' q.pk %}"
-                   class="action-btn edit-btn"
-                   title="Edit Quotation">
-                    <i class="bi bi-pencil"></i>
+                   class="btn btn-sm btn-warning me-1">
+                    Edit
                 </a>
                 {% endif %}
 
                 <!-- DELETE (only draft) -->
                 {% if q.status == 'draft' %}
-                <a href="{% url 'sales:quotation_delete' q.pk %}"
-                   class="action-btn delete-btn"
-                   title="Delete Quotation"
-                   onclick="return confirm('Delete this quotation?');">
-                    <i class="bi bi-trash"></i>
-                </a>
+                <button
+                type="button"
+                class="btn btn-sm btn-danger me-1"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteConfirmModal"
+                data-delete-url="{% url 'sales:quotation_delete' q.pk %}"
+                data-object-name="Quotation #{{ q.pk }}">
+                Delete
+                </button>
                 {% endif %}
 
-                <!-- APPROVE (only sent) - POST -->
+                <!-- APPROVE (only sent) -->
                 {% if q.status == 'sent' %}
                 <form method="post"
                       action="{% url 'sales:quotation_approve' q.pk %}"
-                      style="display:inline;">
+                      class="d-inline">
                     {% csrf_token %}
                     <button type="submit"
-                            class="action-btn success-btn"
-                            title="Approve Quotation"
+                            class="btn btn-sm btn-success me-1"
                             onclick="return confirm('Approve this quotation?');">
-                        <i class="bi bi-check2-circle"></i>
+                        Approve
                     </button>
                 </form>
                 {% endif %}
@@ -81,12 +90,10 @@
                 <!-- CREATE SALES ORDER (only approved) -->
                 {% if q.status == 'approved' %}
                 <a href="{% url 'sales:order_create' %}?quotation={{ q.pk }}"
-                   class="action-btn success-btn"
-                   title="Create Sales Order">
-                    <i class="bi bi-cart-check"></i>
+                   class="btn btn-sm btn-success">
+                    Create Order
                 </a>
                 {% endif %}
-
             </td>
         </tr>
 
@@ -99,78 +106,5 @@
         {% endfor %}
     </tbody>
 </table>
-
-<!-- ================= CUSTOM STYLES ================= -->
-<style>
-.add-btn {
-    background: linear-gradient(135deg, #4f46e5, #3b82f6);
-    color: #fff !important;
-    padding: 8px 14px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-}
-.add-btn:hover {
-    background: linear-gradient(135deg, #4338ca, #2563eb);
-}
-
-/* STATUS BADGES */
-.status-badge {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-}
-.status-badge.draft {
-    background: #e5e7eb;
-    color: #111827;
-}
-.status-badge.sent {
-    background: #38bdf8;
-    color: #000;
-}
-.status-badge.approved {
-    background: #16a34a;
-    color: #fff;
-}
-.status-badge.rejected {
-    background: #dc2626;
-    color: #fff;
-}
-
-/* ACTION CELL */
-.actions-cell {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-}
-
-/* BASE ACTION BUTTON */
-.action-btn {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    color: #fff !important;
-    text-decoration: none !important;
-    font-size: 14px;
-    border: none;
-}
-
-.edit-btn { background: #f59e0b !important; }
-.edit-btn:hover { background: #d97706 !important; }
-
-.delete-btn { background: #dc2626 !important; }
-.delete-btn:hover { background: #b91c1c !important; }
-
-.success-btn { background: #16a34a !important; }
-.success-btn:hover { background: #15803d !important; }
-
-.table-hover tbody tr:hover {
-    background-color: #f1f5f9;
-}
-</style>
 
 {% endblock %}

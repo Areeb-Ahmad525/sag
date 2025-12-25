@@ -1,63 +1,68 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 {% extends 'inventory/inventory_base.html' %}
 {% load static %}
 
 {% block inventory_child %}
 
-<link rel="stylesheet" href="{% static 'css/crud_styling.css' %}">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
 
-<div class="wrapper">
-    <div class="header">
-        <h2>Supplier List</h2>
-        <a href="/inventory/suppliers/create/" class="btn-add">
-            <span class="plus-icon">+</span> Add Supplier
-        </a>
-    </div>
+<!-- ================= PAGE HEADER ================= -->
+<div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <h3 class="fw-bold">Suppliers</h3>
 
-    <div class="table-container">
-        <table class="data-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Contact Person</th>
-                    <th>Phone</th>
-                    <th>Email</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-
-            <tbody>
-                {% for s in suppliers %}
-                <tr>
-                    <td>{{ s.name }}</td>
-                    <td>{{ s.contact_person|default:"-" }}</td>
-                    <td>{{ s.phone_number|default:"-" }}</td>
-                    <td>{{ s.email|default:"-" }}</td>
-                    <td class="actions">
-                        <a href="{% url 'inventory:edit_supplier' s.id %}" class="edit-btn" title="Edit">
-                            <i class="fa fa-pencil"></i>
-                        </a>
-
-                        <!-- <a href="{% url 'inventory:delete_supplier' s.id %}" 
-                        class="delete-btn" 
-                        title="Delete"
-                        onclick="return confirm('Are you sure you want to delete supplier: {{ s.name }}?')">
-                            <i class="fa fa-trash"></i>
-                        </a> -->
-                    </td>
-                </tr>
-                {% empty %}
-                <tr>
-                    <td colspan="5" style="text-align: center;">No suppliers found.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-
-        </table>
-    </div>
+    <a href="/inventory/suppliers/create/" class="btn btn-success btn-sm ms-2">
+        <i class="bi bi-plus-circle me-1"></i> Add Supplier
+    </a>
 </div>
 
+<!-- ================= SUPPLIER TABLE ================= -->
+<table class="table table-bordered table-striped align-middle">
+    <thead class="table-dark">
+        <tr>
+            <th>Name</th>
+            <th>Contact Person</th>
+            <th>Phone</th>
+            <th>Email</th>
+            <th style="width: 200px;">Actions</th>
+        </tr>
+    </thead>
 
+    <tbody>
+        {% for s in suppliers %}
+        <tr>
+            <td class="fw-semibold">{{ s.name }}</td>
+            <td>{{ s.contact_person }}</td>
+            <td>{{ s.phone_number }}</td>
+            <td>{{ s.email }}</td>
 
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+            <td>
+                <!-- EDIT -->
+                <a href="{% url 'inventory:edit_supplier' s.id %}"
+                   class="btn btn-sm btn-warning me-1">
+                    Edit
+                </a>
+
+               
+                <button
+                    type="button"
+                    class="btn btn-danger btn-sm"
+                    data-bs-toggle="modal"
+                    data-bs-target="#deleteConfirmModal"
+                    data-delete-url="{% url 'inventory:delete_supplier' s.id %}"
+                    data-object-name="{{ s.name }}">
+                    Delete
+                </button>
+            </td>
+        </tr>
+
+        {% empty %}
+        <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+                No suppliers found
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
 {% endblock %}

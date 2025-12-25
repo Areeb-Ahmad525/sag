@@ -47,7 +47,7 @@ def pr_list(request):
 
 
 @login_required
-# @role_required(['procurement','admin'])
+@role_required(['procurement','admin'])
 def pr_create(request):
     if request.method == 'POST':
         form = PurchaseRequestForm(request.POST)
@@ -56,7 +56,7 @@ def pr_create(request):
             pr.created_by = request.user
             pr.save()
             messages.success(request, "Purchase Request created.")
-            return redirect('procurement:pr_create')
+            return redirect('procurement:pr_detail', pr_id=pr.id)
     else:
         form = PurchaseRequestForm()
     return render(request, 'procurement/pr_form.html', {'form': form})

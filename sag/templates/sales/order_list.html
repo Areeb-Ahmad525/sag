@@ -1,3 +1,4 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
 {% extends 'sales/base_sales.html' %}
 {% load static %}
 {% block sales_child %}
@@ -8,70 +9,77 @@
 <div class="page-header d-flex justify-content-between align-items-center mb-4">
     <h3 class="fw-bold">Sales Orders</h3>
 
-    <!-- ADD ORDER BUTTON -->
-    <a href="{% url 'sales:order_create' %}" class="add-btn">
+    <a href="{% url 'sales:order_create' %}" class="btn btn-success btn-sm ms-2">
         <i class="bi bi-cart-plus me-1"></i> Create Order
     </a>
 </div>
 
 <!-- ================= ORDERS TABLE ================= -->
-<table class="table table-bordered table-hover align-middle shadow-sm">
+<table class="table table-bordered table-striped align-middle">
     <thead class="table-dark">
         <tr>
-            <th>#</th>
+            <th>Order No.</th>
             <th>Customer</th>
             <th>Quotation</th>
             <th>Status</th>
-            <th class="text-center" style="width: 260px;">Actions</th>
+            <th style="width: 260px;">Actions</th>
         </tr>
     </thead>
 
     <tbody>
         {% for o in orders %}
         <tr>
-            <td class="fw-semibold">#{{ o.pk }}</td>
-
+            <td class="fw-semibold">{{ o.pk }}</td>
             <td>{{ o.customer.name }}</td>
 
             <td class="fw-semibold">
-                #{{ o.quotation.pk }}
+                {{ o.quotation.pk }}
             </td>
 
             <td>
-                <span class="status-badge {{ o.status }}">
-                    {{ o.get_status_display }}
-                </span>
+                {% if o.status == 'pending' %}
+                    <span class="badge bg-warning text-dark">Pending</span>
+                {% elif o.status == 'in_progress' %}
+                    <span class="badge bg-primary">In Progress</span>
+                {% elif o.status == 'completed' %}
+                    <span class="badge bg-success">Completed</span>
+                {% elif o.status == 'cancelled' %}
+                    <span class="badge bg-danger">Cancelled</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ o.get_status_display }}</span>
+                {% endif %}
             </td>
 
             <!-- ACTION BUTTONS -->
-            <td class="actions-cell">
-
+            <td>
                 <!-- EDIT (only pending) -->
                 {% if o.status == 'pending' %}
                 <a href="{% url 'sales:order_update' o.pk %}"
-                   class="action-btn edit-btn"
-                   title="Edit Order">
-                    <i class="bi bi-pencil"></i>
+                   class="btn btn-sm btn-warning me-1">
+                    Edit
                 </a>
                 {% endif %}
 
                 <!-- DELETE (only pending) -->
                 {% if o.status == 'pending' %}
-                <a href="{% url 'sales:order_delete' o.pk %}"
-                   class="action-btn delete-btn"
-                   title="Delete Order"
-                   onclick="return confirm('Delete this sales order?');">
-                    <i class="bi bi-trash"></i>
-                </a>
+               
+                <button
+                type="button"
+                class="btn btn-sm btn-danger me-1"
+                data-bs-toggle="modal"
+                data-bs-target="#deleteConfirmModal"
+                data-delete-url="{% url 'sales:order_delete' o.pk %}"
+                data-object-name="Order #{{ o.pk }}">
+                Delete
+                </button>
                 {% endif %}
 
-                <!-- VIEW / LOCKED -->
+                <!-- LOCKED -->
                 {% if o.status != 'pending' %}
-                <span class="locked-label">
+                <span class="badge bg-secondary">
                     <i class="bi bi-lock-fill me-1"></i> Locked
                 </span>
                 {% endif %}
-
             </td>
         </tr>
 
@@ -84,92 +92,5 @@
         {% endfor %}
     </tbody>
 </table>
-
-<!-- ================= CUSTOM STYLES ================= -->
-<style>
-/* ADD BUTTON */
-.add-btn {
-    background: linear-gradient(135deg, #16a34a, #22c55e);
-    color: #fff !important;
-    padding: 8px 14px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-weight: 500;
-}
-.add-btn:hover {
-    background: linear-gradient(135deg, #15803d, #16a34a);
-}
-
-/* STATUS BADGES */
-.status-badge {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-}
-
-.status-badge.pending {
-    background: #facc15;
-    color: #000;
-}
-
-.status-badge.in_progress {
-    background: #3b82f6;
-    color: #fff;
-}
-
-.status-badge.completed {
-    background: #16a34a;
-    color: #fff;
-}
-
-.status-badge.cancelled {
-    background: #dc2626;
-    color: #fff;
-}
-
-/* ACTION CELL */
-.actions-cell {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-}
-
-/* BASE ACTION BUTTON */
-.action-btn {
-    width: 34px;
-    height: 34px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 6px;
-    color: #fff !important;
-    text-decoration: none !important;
-    font-size: 14px;
-    border: none;
-}
-
-/* EDIT */
-.edit-btn { background: #f59e0b !important; }
-.edit-btn:hover { background: #d97706 !important; }
-
-/* DELETE */
-.delete-btn { background: #dc2626 !important; }
-.delete-btn:hover { background: #b91c1c !important; }
-
-/* LOCKED LABEL */
-.locked-label {
-    font-size: 12px;
-    color: #6b7280;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-}
-
-/* ROW HOVER */
-.table-hover tbody tr:hover {
-    background-color: #f1f5f9;
-}
-</style>
 
 {% endblock %}
