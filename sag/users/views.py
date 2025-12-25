@@ -260,3 +260,42 @@ def user_base(request):
     return render(request, 'users/base_user_management.html')
 
 
+
+# views.py
+from django.http import HttpResponse
+from django.core.mail import send_mail
+from django.conf import settings
+
+def test_email_sending(request):
+    """
+    A manual trigger to test if SMTP settings are correct.
+    """
+    # 1. Define dummy data
+    test_receiver = "habibazeem658@gmail.com" # <--- PUT YOUR EMAIL HERE
+    dummy_task_name = "Test Factory Machine Maintenance"
+    dummy_manager = "Admin Test User"
+    dummy_deadline = "2025-12-31"
+
+    subject = "FACTORY SYSTEM TEST: New Task Assigned"
+    message = (
+        f"This is a dummy test email.\n\n"
+        f"Task: {dummy_task_name}\n"
+        f"Assigned By: {dummy_manager}\n"
+        f"Deadline: {dummy_deadline}\n\n"
+        f"If you see this, your SMTP settings are working perfectly!"
+    )
+
+    try:
+        # 2. Attempt to send
+        send_mail(
+            subject,
+            message,
+            settings.DEFAULT_FROM_EMAIL,
+            [test_receiver],
+            fail_silently=False,
+        )
+        return HttpResponse(f"<h2>Success!</h2> Email sent to {test_receiver}. Check your inbox (and spam folder).")
+    
+    except Exception as e:
+        # 3. Catch and display errors
+        return HttpResponse(f"<h2>Failed!</h2> Error details: <br><code>{str(e)}</code>")
