@@ -135,7 +135,62 @@
 
 </div>
 
-</body>
+</body><!-- Toast container -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100;">
+    {% if messages %}
+        {% for message in messages %}
+            {% if message.tags == 'error' %}
+                {% with toast_class="danger" %}
+                    <div class="toast align-items-center text-bg-{{ toast_class }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">{{ message }}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% elif message.tags == 'warning' %}
+                {% with toast_class="warning" %}
+                    <div class="toast align-items-center text-bg-{{ toast_class }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">{{ message }}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% elif message.tags == 'info' %}
+                {% with toast_class="info" %}
+                    <div class="toast align-items-center text-bg-{{ toast_class }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">{{ message }}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% else %}
+                {% with toast_class="success" %}
+                    <div class="toast align-items-center text-bg-{{ toast_class }} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true">
+                        <div class="d-flex">
+                            <div class="toast-body">{{ message }}</div>
+                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                        </div>
+                    </div>
+                {% endwith %}
+            {% endif %}
+        {% endfor %}
+    {% endif %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const toastElList = [].slice.call(document.querySelectorAll('.toast'))
+    toastElList.forEach(function(toastEl) {
+        const toast = new bootstrap.Toast(toastEl, { delay: 5000 }) // auto hide after 5s
+        toast.show()
+    })
+});
+</script>
+
 <script>
     const hamburger = document.querySelector('.hamburger');
     const sidebar = document.querySelector('.sidebar');
