@@ -1,0 +1,91 @@
+{% extends "attendance/base_attendance.html" %}
+{% load static %}
+
+{% block attendance_child %}
+
+<h4>{% if is_edit %}Edit{% else %}Mark{% endif %} Attendance – {{ date }}</h4>
+
+<form method="post">
+    {% csrf_token %}
+
+    <div class="mb-3">
+        <label class="me-3">
+            <input type="radio" name="all_status" value="present" id="all_present">
+            All Present
+        </label>
+        <label>
+            <input type="radio" name="all_status" value="absent" id="all_absent">
+            All Absent
+        </label>
+    </div>
+
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>Status</th>
+                <th>Remarks</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for emp in employees %}
+            <tr>
+                <td>
+                    {% if emp.profile_picture %}
+                    <img src="{{ emp.profile_picture.url }}" width="40" class="rounded-circle">
+                    {% endif %}
+                </td>
+                <td>{{ emp.name }}</td>
+                <td>{{ emp.phone }}</td>
+                <td>
+                    <label>
+                        <input type="radio" name="status_{{ emp.id }}" value="present"
+                        {% if existing_data.emp.id.status == "present" %}checked{% endif %}>
+                        Present
+                    </label>
+                    <label>
+                        <input type="radio" name="status_{{ emp.id }}" value="absent"
+                        {% if existing_data.emp.id.status == "absent" %}checked{% endif %}>
+                        Absent
+                    </label>
+                </td>
+                <td>
+                    <input type="text" name="remarks_{{ emp.id }}" value="{{ existing_data.emp.id.remarks|default:'' }}" class="form-control">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="text-end">
+        <a href="{% url 'attendance:attendance_list' %}" class="btn btn-secondary">Cancel</a>
+        <button class="btn btn-primary">{% if is_edit %}Update{% else %}Save{% endif %}</button>
+    </div>
+</form>
+
+<script>
+    // All Present / All Absent toggle
+    const allPresent = document.getElementById('all_present');
+    const allAbsent = document.getElementById('all_absent');
+    const employeeRadios = document.querySelectorAll('input[type=radio][name^="status_"]');
+
+    allPresent.addEventListener('change', () => {
+        if (allPresent.checked) {
+            employeeRadios.forEach(radio => {
+                if (radio.value === 'present') radio.checked = true;
+            });
+        }
+    });
+
+    allAbsent.addEventListener('change', () => {
+        if (allAbsent.checked) {
+            employeeRadios.forEach(radio => {
+                if (radio.value === 'absent') radio.checked = true;
+            });
+        }
+    });
+</script>
+
+{% endblock %}

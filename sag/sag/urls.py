@@ -34,6 +34,8 @@ urlpatterns = [
     path('production/', include('production.urls', namespace='production')),
     path('sales/', include('sales.urls', namespace='sales')),
     path('qualitycheck/', include('qualitycheck.urls')),
+    path("attendance/", include("attendance.urls"),name='attendance'),
+
 
 ]
 if settings.DEBUG:

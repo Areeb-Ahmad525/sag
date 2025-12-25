@@ -1,0 +1,65 @@
+{% extends "attendance/base_attendance.html" %}
+
+{% block attendance_child %}
+
+<h4 class="mb-3">Monthly Attendance Report</h4>
+
+<form method="get" class="mb-4">
+    <div class="d-flex gap-2">
+        <input type="month"
+               name="month"
+               value="{{ month }}"
+               class="form-control"
+               style="max-width: 200px"
+               required>
+        <button class="btn btn-primary">Generate</button>
+    </div>
+</form>
+
+{% if report %}
+<div class="table-responsive">
+    <table class="table table-bordered align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Photo</th>
+                <th>Name</th>
+                <th>Contact</th>
+                <th>Total Present</th>
+                <th>Total Absent</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for r in report %}
+            <tr>
+                <td>
+                    {% if r.employee.profile_picture %}
+                        <img src="{{ r.employee.profile_picture.url }}"
+                             width="40"
+                             height="40"
+                             class="rounded-circle">
+                    {% else %}
+                        <span class="text-muted">N/A</span>
+                    {% endif %}
+                </td>
+                <td>{{ r.employee.name }}</td>
+                <td>{{ r.employee.phone|default:"-" }}</td>
+                <td>
+                    <span class="badge bg-success">
+                        {{ r.present }}
+                    </span>
+                </td>
+                <td>
+                    <span class="badge bg-danger">
+                        {{ r.absent }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<p class="text-muted">Select a month to generate the report.</p>
+{% endif %}
+
+{% endblock %}

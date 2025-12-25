@@ -44,7 +44,10 @@
        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         Dashboard
     </a>
-
+    <a href="{% url 'procurement:pr_create' %}"
+       class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+        Purchase Request
+    </a>
     {% with role=request.user.userprofile.role %}
 
     <!-- ADMIN & QC → Full access -->
@@ -57,12 +60,14 @@
         <a href="{% url 'production:production_base' %}">Production</a>
         <a href="{% url 'sales:sales_base' %}">Sales</a>
         <a href="{% url 'qualitycheck_base' %}">Quality Check</a>
+        <a href="{% url 'attendance:attendance_list' %}">Attendance Management</a>
 
     <!-- HR -->
     {% elif role == 'hr' %}
 
         <a href="{% url 'teams_base' %}">Teams Management</a>
         <a href="{% url 'user_base' %}">Users Management</a>
+        <a href="{% url 'attendance' %}">Attendance Management</a>
 
     <!-- PROCUREMENT -->
     {% elif role == 'procurement' %}

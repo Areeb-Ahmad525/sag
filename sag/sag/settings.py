@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     'inventory',
     'crispy_forms',
     'crispy_bootstrap5',
-    # 'users',
+    'attendance',
     'procurement',
     'production',
     'sales',

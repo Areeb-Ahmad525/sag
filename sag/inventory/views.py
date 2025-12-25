@@ -69,7 +69,7 @@ def add_supplier(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Supplier saved.")
-        return redirect('supplier_list')
+        return redirect('inventory:supplier_list')
     return render(request, 'inventory/add_supplier.html', {'form': form})
 
 @login_required
@@ -79,7 +79,7 @@ def add_warehouse(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Warehouse saved.")
-        return redirect('warehouse_list')
+        return redirect('inventory:warehouse_list')
     return render(request, 'inventory/add_warehouse.html', {'form': form})
 
 @login_required
@@ -91,7 +91,7 @@ def add_raw_material(request):
         # recalc stock just in case
         mat.recalc_current_stock()
         messages.success(request, "Raw material saved.")
-        return redirect('material_list')
+        return redirect('inventory:material_list')
     return render(request, 'inventory/add_raw_material.html', {'form': form})
 
 @login_required
@@ -103,7 +103,7 @@ def add_inventory_batch(request):
         # After creating a batch, recalc parent material stock
         batch.material.recalc_current_stock()
         messages.success(request, "Inventory batch recorded.")
-        return redirect('batch_list')
+        return redirect('inventory:batch_list')
     return render(request, 'inventory/inventory_batch.html', {'form': form})
 
 @login_required
@@ -119,8 +119,129 @@ def stock_movement(request):
                     movement.created_by = request.user
                     movement.save()  # movement.save triggers processing (see model.save)
                     messages.success(request, "Stock movement recorded.")
-                    return redirect('movement_list')
+                    return redirect('inventory:movement_list')
             except Exception as e:
                 # Catch validation errors raised during processing
                 form.add_error(None, str(e))
     return render(request, 'inventory/stock_movement.html', {'form': form})
+
+@login_required
+@role_required(ALLOWED_ROLES)
+def edit_stock_movement(request, pk):
+    movement = get_object_or_404(StockMovement, pk=pk)
+    # Using the same form as the create view
+    form = StockMovementForm(request.POST or None, instance=movement)
+    
+    if request.method == 'POST' and form.is_valid():
+        try:
+            with transaction.atomic():
+                movement = form.save(commit=False)
+                movement.updated_by = request.user # If you track updates
+                movement.save()
+                messages.success(request, "Stock movement updated.")
+                return redirect('inventory:movement_list')
+        except Exception as e:
+            form.add_error(None, str(e))
+            
+    return render(request, 'inventory/stock_movement.html', {
+        'form': form,
+        'edit_mode': True,
+        'movement': movement
+    })
+
+@login_required
+@role_required(ALLOWED_ROLES)
+def delete_stock_movement(request, pk):
+    movement = get_object_or_404(StockMovement, pk=pk)
+    # Delete immediately without a GET confirmation page
+    movement.delete()
+    messages.success(request, "Stock movement deleted.")
+    return redirect('inventory:movement_list')
+
+
+# --- SUPPLIER EDIT/DELETE ---
+@login_required
+@role_required(ALLOWED_ROLES)
+def edit_supplier(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    form = SupplierForm(request.POST or None, instance=supplier)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Supplier updated.")
+        return redirect('inventory:supplier_list')
+    return render(request, 'inventory/add_supplier.html', {'form': form, 'edit_mode': True})
+
+@login_required
+@role_required(ALLOWED_ROLES)
+def delete_supplier(request, pk):
+    supplier = get_object_or_404(Supplier, pk=pk)
+    supplier.delete()
+    messages.success(request, "Supplier deleted.")
+    return redirect('inventory:supplier_list')
+
+
+# --- WAREHOUSE EDIT/DELETE ---
+@login_required
+@role_required(ALLOWED_ROLES)
+def edit_warehouse(request, pk):
+    warehouse = get_object_or_404(Warehouse, pk=pk)
+    form = WarehouseForm(request.POST or None, instance=warehouse)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        messages.success(request, "Warehouse updated.")
+        return redirect('inventory:warehouse_list')
+    return render(request, 'inventory/add_warehouse.html', {'form': form, 'edit_mode': True})
+
+@login_required
+@role_required(ALLOWED_ROLES)
+def delete_warehouse(request, pk):
+    warehouse = get_object_or_404(Warehouse, pk=pk)
+    warehouse.delete()
+    messages.success(request, "Warehouse deleted.")
+    return redirect('inventory:warehouse_list')
+
+
+# --- RAW MATERIAL EDIT/DELETE ---
+@login_required
+@role_required(ALLOWED_ROLES)
+def edit_raw_material(request, pk):
+    material = get_object_or_404(RawMaterial, pk=pk)
+    form = RawMaterialForm(request.POST or None, instance=material)
+    if request.method == 'POST' and form.is_valid():
+        mat = form.save()
+        mat.recalc_current_stock()
+        messages.success(request, "Raw material updated.")
+        return redirect('inventory:material_list')
+    return render(request, 'inventory/add_raw_material.html', {'form': form, 'edit_mode': True})
+
+@login_required
+@role_required(ALLOWED_ROLES)
+def delete_raw_material(request, pk):
+    material = get_object_or_404(RawMaterial, pk=pk)
+    material.delete()
+    messages.success(request, "Raw material deleted.")
+    return redirect('inventory:material_list')
+
+
+# --- INVENTORY BATCH EDIT/DELETE ---
+@login_required
+@role_required(ALLOWED_ROLES)
+def edit_inventory_batch(request, pk):
+    batch = get_object_or_404(InventoryBatch, pk=pk)
+    form = InventoryBatchForm(request.POST or None, instance=batch)
+    if request.method == 'POST' and form.is_valid():
+        batch = form.save()
+        batch.material.recalc_current_stock()
+        messages.success(request, "Inventory batch updated.")
+        return redirect('inventory:batch_list')
+    return render(request, 'inventory/inventory_batch.html', {'form': form, 'edit_mode': True})
+
+@login_required
+@role_required(ALLOWED_ROLES)
+def delete_inventory_batch(request, pk):
+    batch = get_object_or_404(InventoryBatch, pk=pk)
+    material = batch.material
+    batch.delete()
+    material.recalc_current_stock() # Ensure stock is correct after deletion
+    messages.success(request, "Inventory batch deleted.")
+    return redirect('inventory:batch_list')

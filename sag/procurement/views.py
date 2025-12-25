@@ -40,14 +40,14 @@ def procurement_index(request):
 
 # --- PR views ---
 @login_required
-@role_required(['procurement','admin','hr'])
+@role_required(['procurement','admin','manager'])
 def pr_list(request):
     prs = PurchaseRequest.objects.order_by('-created_at')
     return render(request, 'procurement/pr_list.html', {'prs': prs})
 
 
 @login_required
-@role_required(['procurement','admin'])
+# @role_required(['procurement','admin'])
 def pr_create(request):
     if request.method == 'POST':
         form = PurchaseRequestForm(request.POST)
@@ -56,7 +56,7 @@ def pr_create(request):
             pr.created_by = request.user
             pr.save()
             messages.success(request, "Purchase Request created.")
-            return redirect('procurement:pr_detail', pr_id=pr.id)
+            return redirect('procurement:pr_create')
     else:
         form = PurchaseRequestForm()
     return render(request, 'procurement/pr_form.html', {'form': form})

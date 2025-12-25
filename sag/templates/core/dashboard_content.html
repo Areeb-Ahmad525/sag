@@ -2,77 +2,51 @@
 
 {% block content %}
 
-<!-- KPI CARDS -->
-<div class="kpi-section">
-    <div class="kpi-card">
-        <div class="kpi-title">Total Sales</div>
-        <div class="kpi-value">PKR 0</div>
+    {% with role=request.user.userprofile.role %}
+
+    {% if role == 'inventory' %}
+         <div class="table-container">
+        <table class="data-table">
+
+            <thead>
+                <tr>
+                    <th>Pr No.</th>
+                    <th>Title</th>
+                    <th>Status</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                {% for pr in prs %}
+                <tr>
+                    <td>{{ pr.pk }}</td>
+                    <td>{{ pr.title }}</td>
+                    <td>{{ pr.get_status_display }}</td>
+                    <td>{{ pr.created_at|date:"Y-m-d H:i" }}</td>
+
+                    <td>
+                        <a href="{% url 'procurement:pr_detail' pr.pk %}"
+                           class="btn btn-primary btn-sm text-white">
+                            <i class="bi bi-eye me-1"></i> View
+                        </a>
+                    </td>
+                </tr>
+
+                {% empty %}
+                <tr>
+                    <td colspan="5">No PRs yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+
+        </table>
     </div>
-    <div class="kpi-card">
-        <div class="kpi-title">Total Projects</div>
-        <div class="kpi-value">0</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-title">Total Employees</div>
-        <div class="kpi-value">0</div>
-    </div>
-    <div class="kpi-card">
-        <div class="kpi-title">Active Machines</div>
-        <div class="kpi-value">0</div>
-    </div>
-</div>
+    {% else %}
+        <p> working.</p>
+    {% endif %}
 
-<!-- CHARTS -->
-<div class="chart-box">
-    <div class="chart-title">Sales Over Time</div>
-    <div class="chart-placeholder"></div>
-</div>
-
-<div class="chart-box">
-    <div class="chart-title">Project Status</div>
-    <div class="chart-placeholder"></div>
-</div>
-
-<div class="chart-box">
-    <div class="chart-title">Inventory Consumption</div>
-    <div class="chart-placeholder"></div>
-</div>
-
-<!-- TABLES -->
-<div class="table-box">
-    <h3>Latest Employees</h3>
-    <table>
-        <tr>
-            <th>Name</th>
-            <th>Role</th>
-            <th>Status</th>
-            <th>Hire Date</th>
-        </tr>
-        <tr>
-            <td>—</td>
-            <td>—</td>
-            <td>—</td>
-            <td>—</td>
-        </tr>
-    </table>
-</div>
-
-<div class="table-box">
-    <h3>Recent Sales Orders</h3>
-    <table>
-        <tr>
-            <th>Order ID</th>
-            <th>Customer</th>
-            <th>Status</th>
-            <th>Total Amount</th>
-        </tr>
-        <tr>
-            <td>—</td>
-            <td>—</td>
-            <td>—</td>
-            <td>—</td>
-        </tr>
-    </table>
-</div>
+    {% endwith %}
 
 {% endblock content %}
