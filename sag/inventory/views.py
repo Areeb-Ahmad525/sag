@@ -47,6 +47,11 @@ def inventory_index(request):
         created_at__month=today.month,
         created_at__year=today.year
     ).count()
+    
+    pending_requests = ProductionOrder.objects.filter(
+        status='waiting_inventory'
+    ).select_related('sales_order', 'manager')
+
 
     context = {
         'total_materials': total_materials,
@@ -60,6 +65,7 @@ def inventory_index(request):
         'batches_today': batches_today,
         'movements_today': movements_today,
         'movements_month': movements_month,
+        'pending_requests': pending_requests,
     }
 
     return render(request, 'inventory/inventory_stats.html', context)
