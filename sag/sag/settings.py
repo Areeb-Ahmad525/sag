@@ -201,4 +201,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'testing008855@gmail.com'  # Your Gmail address
 EMAIL_HOST_PASSWORD = 'skod fnem tfas ynzk'  # The 16-character App Password
-DEFAULT_FROM_EMAIL = 'Factory Management <your-email@gmail.com>'
+DEFAULT_FROM_EMAIL = 'Saud Aluminium and Glass <your-email@gmail.com>'

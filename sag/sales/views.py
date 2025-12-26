@@ -19,7 +19,7 @@ from .forms import (
 )
 from production.models import ProductionOrder
 from django.views.decorators.http import require_POST
-
+from .utils import send_production_start_notification # Import the new function
 
 @login_required
 @require_POST
@@ -35,7 +35,16 @@ def send_to_production(request, pk):
     order.status = 'in_progress'
     order.save()
 
-    messages.success(request, 'Order sent to production successfully.')
+    # --- EMAIL NOTIFICATION START ---
+    if order.assigned_to and order.assigned_to.email:
+        try:
+            send_production_start_notification(order)
+            messages.success(request, f'Order #{order.pk} is now In Progress. Notification sent to {order.assigned_to.get_full_name()}.')
+        except Exception as e:
+            messages.warning(request, 'Order moved to production, but notification email failed.')
+    else:
+        messages.success(request, 'Order sent to production successfully.')
+    # --- EMAIL NOTIFICATION END ---
 
     return redirect('sales:order_list')
 # CUSTOMER CRUD
@@ -258,6 +267,59 @@ def order_update(request, pk):
     return render(request, 'sales/order_form.html', {
         'form': result['form']
     })
+
+
+# # views.py
+# from .utils import send_order_assignment_notification
+# def order_create(request):
+#     # 1. Initialize the CRUD utility
+#     crud = DBCRUD(
+#         model=SalesOrder,
+#         form_class=SalesOrderForm,
+#         set_created_by=True,
+#     )
+
+#     # 2. Process the request (Handles both GET and POST)
+#     result = crud.handle_create(request)
+
+#     # 3. Handle successful creation
+#     if result['success']:
+#         order = result['object']
+
+#         # EXTRA SAFETY: Block duplicate orders
+#         # Ensures no two SalesOrders can point to the same Quotation
+#         if SalesOrder.objects.filter(quotation=order.quotation).exclude(pk=order.pk).exists():
+#             order.delete()
+#             messages.error(
+#                 request,
+#                 "A sales order already exists for this quotation."
+#             )
+#             return redirect('sales:order_list')
+
+#         # EMAIL TRIGGER
+#         # We send the mail after the safety check is passed
+#         if order.assigned_to and order.assigned_to.email:
+#             try:
+#                 send_order_assignment_notification(order)
+#                 messages.success(request, f'Sales order created and notification sent to {order.assigned_to.get_full_name()}.')
+#             except Exception as e:
+#                 # If email fails, we don't want to stop the user. 
+#                 # We just warn them that the email didn't go out.
+#                 messages.warning(request, 'Order created successfully, but notification email failed to send.')
+#         else:
+#             messages.success(request, 'Sales order created successfully (No manager assigned for email).')
+
+#         return redirect('sales:order_list')
+
+#     # 4. Handle Errors (Validation errors or GET request)
+#     # If handle_create returns False, result['errors'] contains the form errors
+#     error_msg = result.get('errors')
+#     if error_msg:
+#         messages.error(request, error_msg)
+
+#     return render(request, 'sales/order_form.html', {
+#         'form': result['form']
+#     })
 
 
 def order_delete(request, pk):

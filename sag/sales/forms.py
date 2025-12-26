@@ -135,7 +135,7 @@ class SalesOrderForm(forms.ModelForm):
         admin_user_ids = (
             UserProfile.objects
             .filter(
-                role=constants.ROLE_ADMIN,
+                role=constants.ROLE_MANAGER,
                 status='active'
             )
             .values_list('user_id', flat=True)

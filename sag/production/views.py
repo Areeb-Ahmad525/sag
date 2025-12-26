@@ -230,7 +230,51 @@ def complete_production(request, pk):
 
 
 
-@login_required
+# @login_required
+# def add_production_task(request, order_id):
+#     order = get_object_or_404(ProductionOrder, id=order_id)
+#     profile = request.user.userprofile
+
+#     # Access control
+#     if profile.role not in (constants.ROLE_ADMIN, constants.ROLE_MANAGER):
+#         messages.error(request, "You are not allowed to add tasks.")
+#         return redirect('production:order_detail', pk=order_id)
+
+#     if profile.role == constants.ROLE_MANAGER and order.manager != request.user:
+#         messages.error(request, "You cannot add tasks to this order.")
+#         return redirect('production:order_detail', pk=order_id)
+
+#     # 🔥 THIS IS THE FIX
+#     order_manager_profile = order.manager.userprofile
+
+#     if request.method == 'POST':
+#         form = ProductionTaskForm(
+#             request.POST,
+#             manager_profile=order_manager_profile
+#         )
+
+#         if form.is_valid():
+#             task = form.save(commit=False)
+#             task.production_order = order
+#             task.save()
+
+#             messages.success(request, "Production task added successfully.")
+#             return redirect('production:order_detail', pk=order_id)
+#     else:
+#         form = ProductionTaskForm(manager_profile=order_manager_profile)
+
+#     return render(
+#         request,
+#         'production/add_task.html',
+#         {
+#             'order': order,
+#             'form': form,
+#         }
+#     )
+
+# views.py
+from .utils import send_task_assignment_notification  # Import the function
+
 def add_production_task(request, order_id):
     order = get_object_or_404(ProductionOrder, id=order_id)
     profile = request.user.userprofile
@@ -244,7 +288,6 @@ def add_production_task(request, order_id):
         messages.error(request, "You cannot add tasks to this order.")
         return redirect('production:order_detail', pk=order_id)
 
-    # 🔥 THIS IS THE FIX
     order_manager_profile = order.manager.userprofile
 
     if request.method == 'POST':
@@ -258,7 +301,13 @@ def add_production_task(request, order_id):
             task.production_order = order
             task.save()
 
-            messages.success(request, "Production task added successfully.")
+            # 🔥 TRIGGER EMAIL NOTIFICATION
+            try:
+                send_task_assignment_notification(task)
+                messages.success(request, f"Production task assigned and email sent to {task.assigned_to.username}.")
+            except Exception:
+                messages.warning(request, "Task saved, but notification email failed to send.")
+
             return redirect('production:order_detail', pk=order_id)
     else:
         form = ProductionTaskForm(manager_profile=order_manager_profile)

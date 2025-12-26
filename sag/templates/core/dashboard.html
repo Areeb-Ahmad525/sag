@@ -44,6 +44,9 @@
        class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
         Dashboard
     </a>
+    <a href="{% url 'production:production_base' %}">
+            Production
+        </a>
     {% with role=request.user.userprofile.role %}
 
     <!-- ADMIN & QC → Full access -->
@@ -89,12 +92,8 @@
             Sales
         </a>
 
-    <!-- PRODUCTION -->
-    {% elif role == 'production' %}
 
-        <a href="{% url 'production:production_base' %}">
-            Production
-        </a>
+        
 
     <!-- LOGISTICS -->
     {% elif role == 'logistics' %}
