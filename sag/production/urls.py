@@ -5,62 +5,26 @@ app_name = 'production'
 
 urlpatterns = [
 
-    # DASHBOARD
+    # Dashboard
     path('', views.production_index, name='production_base'),
 
-    # WORK ORDERS
-    path('workorders/', views.wo_list, name='wo_list'),
-    path('workorders/create/', views.wo_create, name='wo_create'),
-    path('workorders/<int:wo_id>/', views.wo_detail, name='wo_detail'),
-    path('workorders/<int:wo_id>/edit/', views.wo_update, name='wo_update'),
-    path('workorders/<int:wo_id>/delete/', views.wo_delete, name='wo_delete'),
-
-        # WORK ORDER STATUS
-    path('workorders/<int:wo_id>/start/', views.wo_start, name='wo_start'),
-    path('workorders/<int:wo_id>/complete/', views.wo_complete, name='wo_complete'),
-
-    # TASKS
-    path('workorders/<int:wo_id>/tasks/create/', views.task_create, name='task_create'),
-    path('tasks/<int:task_id>/start/', views.task_start, name='task_start'),
-    path('tasks/<int:task_id>/complete/', views.task_complete, name='task_complete'),
-    path('tasks/<int:task_id>/delete/', views.task_delete, name='task_delete'),
+    # Order detail (click card)
+    path('order/<int:pk>/', views.production_order_detail, name='order_detail'),
     
-    #Production Stage
-    path('stages/', views.stage_list, name='stage_list'),
-    path('stages/create/', views.stage_create, name='stage_create'),
-    path('stages/<int:stage_id>/edit/', views.stage_update, name='stage_update'),
-    path('stages/<int:stage_id>/delete/', views.stage_delete, name='stage_delete'),
+    path('order/<int:pk>/request-inventory/',views.request_inventory,name='request_inventory'),
     
-    path('stage-logs/', views.all_stage_logs, name='all_stage_logs'),
+    path('order/<int:pk>/start-production/',views.start_production,name='start_production'),
+    
+    path('order/<int:pk>/complete/',views.complete_production,name='complete_production'),
+    
+    path('order/<int:order_id>/add-task/',views.add_production_task,name='add_task'),
+    
+    
+     path('task/<int:task_id>/start/',views.start_task,name='start_task'),
 
+    path('task/<int:task_id>/complete/',views.complete_task,name='complete_task'),
 
+    path('task/<int:task_id>/edit/',views.edit_task,name='edit_task'),
 
-   
-
-
-    # CONSUMPTION
-    path(
-        'workorders/<int:wo_id>/consumption/create/',
-        views.consumption_create,
-        name='consumption_create'
-    ),
-    path(
-        'consumption/<int:consumption_id>/delete/',
-        views.consumption_delete,
-        name='consumption_delete'
-    ),
-
-    # OUTPUT
-    path(
-        'workorders/<int:wo_id>/output/create/',
-        views.output_create,
-        name='output_create'
-    ),
-
-    # WASTAGE
-    path(
-        'workorders/<int:wo_id>/wastage/create/',
-        views.wastage_create,
-        name='wastage_create'
-    ),
+    
 ]

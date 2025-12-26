@@ -72,6 +72,18 @@
                 data-object-name="Order #{{ o.pk }}">
                 Delete
                 </button>
+
+                <form method="post"
+                                  action="{% url 'sales:send_to_production' o.pk %}"
+                                  class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-sm btn-primary"
+                                        title="Send to Production"
+                                        onclick="return confirm('Send this order to production?');">
+                                    Send
+                                </button>
+                            </form>
                 {% endif %}
 
                 <!-- LOCKED -->

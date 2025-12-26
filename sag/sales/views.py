@@ -17,7 +17,27 @@ from .forms import (
     QuotationItemFormSet,
     SalesOrderForm,
 )
+from production.models import ProductionOrder
+from django.views.decorators.http import require_POST
 
+
+@login_required
+@require_POST
+def send_to_production(request, pk):
+    order = get_object_or_404(SalesOrder, pk=pk)
+
+    # Only pending orders can go to production
+    if order.status != 'pending':
+        messages.error(request, 'This order cannot be sent to production.')
+        return redirect('sales:order_list')
+
+    # Update status
+    order.status = 'in_progress'
+    order.save()
+
+    messages.success(request, 'Order sent to production successfully.')
+
+    return redirect('sales:order_list')
 # CUSTOMER CRUD
 
 def customer_list(request):

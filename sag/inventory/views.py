@@ -7,6 +7,7 @@ from django.urls import reverse
 from django.db.models import Sum, F, Count
 from django.utils import timezone
 from django.db.models.functions import TruncMonth
+from production.models import ProductionOrder
 
 from users.decorators import role_required  # use your users app decorator
 from users.constants import ROLE_ADMIN, ROLE_INVENTORY  # central constants
@@ -63,7 +64,29 @@ def inventory_index(request):
 
     return render(request, 'inventory/inventory_stats.html', context)
 
+@login_required
+@role_required(ALLOWED_ROLES)
+def approve_inventory_request(request, order_id):
 
+    order = get_object_or_404(ProductionOrder, id=order_id)
+
+    if order.status != 'waiting_inventory':
+        messages.warning(
+            request,
+            'This production order is no longer waiting for inventory approval.'
+        )
+        return redirect('inventory:inventory_base')
+
+    if request.method == 'POST':
+        order.status = 'ready'
+        order.save(update_fields=['status'])
+
+        messages.success(
+            request,
+            f'Inventory approved for Production Order #{order.id}'
+        )
+
+    return redirect('inventory:inventory_base')
 
 # LIST VIEWS
 @login_required
@@ -105,7 +128,7 @@ def add_supplier(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Supplier saved.")
-        return redirect('supplier_list')
+        return redirect('inventory:supplier_list')
     return render(request, 'inventory/add_supplier.html', {
         'form': form,
         'is_edit' : False,})
@@ -117,7 +140,7 @@ def add_warehouse(request):
     if request.method == 'POST' and form.is_valid():
         form.save()
         messages.success(request, "Warehouse saved.")
-        return redirect('warehouse_list')
+        return redirect('inventory:warehouse_list')
     return render(request, 'inventory/add_warehouse.html', {'form': form})
 
 @login_required
@@ -129,7 +152,7 @@ def add_raw_material(request):
         # recalc stock just in case
         mat.recalc_current_stock()
         messages.success(request, "Raw material saved.")
-        return redirect('material_list')
+        return redirect('inventory:material_list')
     return render(request, 'inventory/add_raw_material.html', {'form': form})
 
 @login_required
@@ -141,7 +164,7 @@ def add_inventory_batch(request):
         # After creating a batch, recalc parent material stock
         batch.material.recalc_current_stock()
         messages.success(request, "Inventory batch recorded.")
-        return redirect('batch_list')
+        return redirect('inventory:batch_list')
     return render(request, 'inventory/inventory_batch.html', {'form': form})
 
 @login_required
@@ -157,7 +180,7 @@ def stock_movement(request):
                     movement.created_by = request.user
                     movement.save()  # movement.save triggers processing (see model.save)
                     messages.success(request, "Stock movement recorded.")
-                    return redirect('movement_list')
+                    return redirect('inventory:movement_list')
             except Exception as e:
                 # Catch validation errors raised during processing
                 form.add_error(None, str(e))

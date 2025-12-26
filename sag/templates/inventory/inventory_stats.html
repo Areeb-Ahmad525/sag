@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+
 {% extends "inventory/inventory_base.html" %}
 {% load static %}
 
@@ -9,42 +10,38 @@
 
     <!-- KPI Cards -->
     <div class="row g-4 mb-4">
-        <!-- Total Materials -->
         <div class="col-md-3">
             <div class="card text-white bg-primary h-100">
                 <div class="card-body">
                     <h5 class="card-title">Total Materials</h5>
-                    <h2 class="card-text">{{ total_materials }}</h2>
+                    <h2>{{ total_materials }}</h2>
                 </div>
             </div>
         </div>
 
-        <!-- Total Batches -->
         <div class="col-md-3">
             <div class="card text-white bg-success h-100">
                 <div class="card-body">
                     <h5 class="card-title">Total Batches</h5>
-                    <h2 class="card-text">{{ total_batches }}</h2>
+                    <h2>{{ total_batches }}</h2>
                 </div>
             </div>
         </div>
 
-        <!-- Total Warehouses -->
         <div class="col-md-3">
             <div class="card text-white bg-warning h-100">
                 <div class="card-body">
                     <h5 class="card-title">Total Warehouses</h5>
-                    <h2 class="card-text">{{ total_warehouses }}</h2>
+                    <h2>{{ total_warehouses }}</h2>
                 </div>
             </div>
         </div>
 
-        <!-- Total Suppliers -->
         <div class="col-md-3">
             <div class="card text-white bg-danger h-100">
                 <div class="card-body">
                     <h5 class="card-title">Total Suppliers</h5>
-                    <h2 class="card-text">{{ total_suppliers }}</h2>
+                    <h2>{{ total_suppliers }}</h2>
                 </div>
             </div>
         </div>
@@ -52,56 +49,52 @@
 
     <!-- Stock KPIs -->
     <div class="row g-4 mb-4">
-        <!-- Low Stock -->
         <div class="col-md-3">
             <div class="card border-warning h-100">
                 <div class="card-body">
                     <h5 class="card-title">Low Stock Items</h5>
-                    <h2 class="card-text">{{ low_stock.count }}</h2>
+                    <h2>{{ low_stock.count }}</h2>
                 </div>
             </div>
         </div>
 
-        <!-- Out of Stock -->
         <div class="col-md-3">
             <div class="card border-danger h-100">
                 <div class="card-body">
                     <h5 class="card-title">Out of Stock</h5>
-                    <h2 class="card-text">{{ out_of_stock.count }}</h2>
+                    <h2>{{ out_of_stock.count }}</h2>
                 </div>
             </div>
         </div>
 
-        <!-- Total Stock Quantity -->
         <div class="col-md-3">
             <div class="card border-primary h-100">
                 <div class="card-body">
                     <h5 class="card-title">Total Stock Quantity</h5>
-                    <h2 class="card-text">{{ total_stock_qty }}</h2>
+                    <h2>{{ total_stock_qty }}</h2>
                 </div>
             </div>
         </div>
 
-        <!-- Total Stock Value -->
         <div class="col-md-3">
             <div class="card border-success h-100">
                 <div class="card-body">
                     <h5 class="card-title">Total Stock Value</h5>
-                    <h2 class="card-text">Rs{{ total_stock_value|floatformat:2 }}</h2>
+                    <h2>Rs {{ total_stock_value|floatformat:2 }}</h2>
                 </div>
             </div>
         </div>
     </div>
 
-  
-
     <!-- Low Stock Items Table -->
-    <div class="row g-4">
+    <div class="row g-4 mb-5">
         <div class="col-12">
             <div class="card">
-                <div class="card-header">Low Stock Items</div>
+                <div class="card-header fw-bold">
+                    Low Stock Items
+                </div>
                 <div class="card-body table-responsive">
-                    <table class="table table-striped">
+                    <table class="table table-striped mb-0">
                         <thead>
                             <tr>
                                 <th>Material</th>
@@ -120,7 +113,9 @@
                             </tr>
                             {% empty %}
                             <tr>
-                                <td colspan="4" class="text-center">No low stock items</td>
+                                <td colspan="4" class="text-center text-muted">
+                                    No low stock items
+                                </td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -129,6 +124,63 @@
             </div>
         </div>
     </div>
+<p>Pending count: {{ pending_requests|length }}</p>
+
+    <!-- ================= PENDING INVENTORY REQUESTS ================= -->
+    {% if pending_requests %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white fw-bold">
+                    Pending Production Inventory Requests
+                </div>
+
+                <div class="card-body">
+                    <div class="row g-3">
+                        {% for req in pending_requests %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card h-100 shadow-sm border-danger">
+                                <div class="card-body">
+
+                                    <h6 class="fw-bold mb-1">
+                                        Production Order #{{ req.id }}
+                                    </h6>
+
+                                    <p class="mb-1 text-muted">
+                                        Sales Order: #{{ req.sales_order.id }}
+                                    </p>
+
+                                    <p class="mb-1">
+                                        Manager:
+                                        <strong>{{ req.manager.userprofile.name }}</strong>
+                                    </p>
+
+                                    <p class="mb-3">
+                                        Requested On:
+                                        {{ req.created_at|date:"d M Y" }}
+                                    </p>
+
+                                    <form method="post"
+                                          action="{% url 'inventory:approve_inventory_request' req.id %}">
+                                        {% csrf_token %}
+                                        <button type="submit"
+                                                class="btn btn-success btn-sm w-100"
+                                                onclick="return confirm('Approve inventory for this production order?');">
+                                            Approve & Mark Ready
+                                        </button>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
 </div>
 {% endblock %}

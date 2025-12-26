@@ -1,527 +1,361 @@
-from django.utils import timezone
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib import messages
-from django.db import transaction
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.http import require_POST
-from production.models import ProductionTask
-from users.decorators import role_required
 from django.db.models import Count
-from inventory.models import InventoryBatch, StockMovement
-from django.db.models import F, Sum
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from django.views.decorators.http import require_POST
+from django.utils import timezone
 
-from .models import (
-    WorkOrder,
-    ProductionTask,
-    WorkOrderConsumption,
-    ProductionOutput,
-    FinishedProductBatch,
-    ProductionWastage,
-    ProductionStage,
-    ProductionStageLog,
-)
-
-from .forms import (
-    WorkOrderForm,
-    ProductionTaskForm,
-    ConsumptionForm,
-    OutputForm,
-    WastageForm,
-    ProductionStageForm,
-)
+from production.models import ProductionOrder, ProductionTask
+from .forms import ProductionTaskForm
+from users import constants
 
 
-# DASHBOARD
-
-
-
+# =================================================
+# PRODUCTION DASHBOARD
+# =================================================
 @login_required
-@role_required(['production', 'admin', 'manager'])
 def production_index(request):
-    # Work order stats
-    total_wos = WorkOrder.objects.count()
-    running = WorkOrder.objects.filter(status='in_progress').count()
-    completed = WorkOrder.objects.filter(status='completed').count()
+    user = request.user
+    profile = user.userprofile
 
-    # Task stats
-    total_tasks = ProductionTask.objects.count()
-    tasks_pending = ProductionTask.objects.filter(status='pending').count()
-    tasks_in_progress = ProductionTask.objects.filter(status='in_progress').count()
-    tasks_completed = ProductionTask.objects.filter(status='completed').count()
+    # Exclude completed orders
+    base_qs = ProductionOrder.objects.exclude(status='completed')
 
-    # Tasks per user
-    tasks_by_user_qs = (
-        ProductionTask.objects
-        .values('assigned_to__username')
-        .annotate(task_count=Count('id'))
-        .order_by('-task_count')
+    # -------------------------------
+    # ROLE-BASED VISIBILITY
+    # -------------------------------
+    if profile.role == constants.ROLE_ADMIN:
+        orders = base_qs
+
+    elif profile.role == constants.ROLE_MANAGER:
+        orders = base_qs.filter(manager=user)
+
+    elif profile.role == constants.ROLE_EMPLOYEE:
+        orders = base_qs.filter(
+            tasks__assigned_to=user
+        ).distinct()
+
+    else:
+        orders = ProductionOrder.objects.none()
+
+    # -------------------------------
+    # COUNTERS
+    # -------------------------------
+    total_orders = orders.count()
+
+    status_counts = (
+        orders.values('status')
+        .annotate(count=Count('id'))
     )
 
-    # Prepare tasks by user with percentage
-    tasks_by_user = []
-    for user in tasks_by_user_qs:
-        user_name = user['assigned_to__username'] or "Unassigned"
-        count = user['task_count']
-        percent = round((count / total_tasks * 100), 2) if total_tasks > 0 else 0
-        tasks_by_user.append({'username': user_name, 'count': count, 'percent': percent})
+    status_map = {row['status']: row['count'] for row in status_counts}
 
     context = {
-        'total_wos': total_wos,
-        'running': running,
-        'completed': completed,
-        'total_tasks': total_tasks,
-        'tasks_pending': tasks_pending,
-        'tasks_in_progress': tasks_in_progress,
-        'tasks_completed': tasks_completed,
-        'tasks_by_user': tasks_by_user,
-        'today': timezone.now().date(),
+        'orders': orders,
+        'total_orders': total_orders,
+        'draft': status_map.get('draft', 0),
+        'waiting_inventory': status_map.get('waiting_inventory', 0),
+        'ready': status_map.get('ready', 0),
+        'in_progress': status_map.get('in_progress', 0),
+        'waiting_qc': status_map.get('waiting_qc', 0),
     }
 
     return render(request, 'production/production_index.html', context)
 
 
-
-
-
-# WORK ORDER CRUD
-
-
+# =================================================
+# PRODUCTION ORDER DETAIL
+# =================================================
 @login_required
-@role_required(['production', 'admin'])
-def wo_list(request):
-    wos = WorkOrder.objects.select_related('product', 'warehouse').order_by('-created_at')
-    
-    search_query = request.GET.get('search', '')
-    status_filter = request.GET.get('status', '')
-    
-    if search_query:
-        wos = wos.filter(work_order_number__icontains=search_query)
-    if status_filter:
-        wos = wos.filter(status=status_filter)
-    
-    # If AJAX request, render only the table rows
-    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'production/wo_list.html', {'wos': wos})
-    
-    return render(request, 'production/wo_list.html', {'wos': wos})
+def production_order_detail(request, pk):
+    order = get_object_or_404(ProductionOrder, pk=pk)
 
-@login_required
-@role_required(['production', 'admin'])
-def wo_create(request):
-    if request.method == 'POST':
-        form = WorkOrderForm(request.POST)
-        if form.is_valid():
-            wo = form.save(commit=False)
-            wo.created_by = request.user
-            wo.save()
-            messages.success(request, "Work order created successfully.")
-            return redirect('production:wo_detail', wo_id=wo.id)
+    user = request.user
+    profile = user.userprofile
+
+    # -------------------------------
+    # ACCESS CONTROL
+    # -------------------------------
+    if profile.role == constants.ROLE_MANAGER and order.manager != user:
+        messages.error(request, "You are not allowed to view this order.")
+        return redirect('production:index')
+
+    if profile.role == constants.ROLE_EMPLOYEE:
+        if not order.tasks.filter(assigned_to=user).exists():
+            messages.error(request, "You are not allowed to view this order.")
+            return redirect('production:index')
+
+    # -------------------------------
+    # TASK VISIBILITY
+    # -------------------------------
+    if profile.role == constants.ROLE_EMPLOYEE:
+        tasks = order.tasks.filter(assigned_to=user)
     else:
-        form = WorkOrderForm()
+        tasks = order.tasks.all()
 
-    return render(request, 'production/wo_form.html', {'form': form})
-
-
-@login_required
-@role_required(['production', 'admin'])
-def wo_update(request, wo_id):
-    wo = get_object_or_404(WorkOrder, pk=wo_id)
-
-    if wo.status != 'planned':
-        messages.error(request, "Only planned work orders can be Edited.")
-        return redirect('production:wo_list')
-
-    if request.method == 'POST':
-        form = WorkOrderForm(request.POST, instance=wo)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Work order updated.")
-            return redirect('production:wo_detail', wo_id=wo.id)
-    else:
-        form = WorkOrderForm(instance=wo)
-
-    return render(request, 'production/wo_form.html', {'form': form})
-
-
-@login_required
-@role_required(['admin'])
-@require_POST
-def wo_delete(request, wo_id):
-    wo = get_object_or_404(WorkOrder, pk=wo_id)
-
-    if wo.tasks.exists():
-        messages.error(request, "Cannot delete a work order with Tasks.")
-        return redirect('production:wo_detail', wo_id=wo.id)
-
-    wo.delete()
-    messages.success(request, "Work order deleted.")
-    return redirect('production:wo_list')
-
-
-
-# WORK ORDER DETAIL
-@login_required
-@role_required(['production', 'admin', 'manager'])
-def wo_detail(request, wo_id):
-    wo = get_object_or_404(
-        WorkOrder.objects.prefetch_related('tasks', 'consumptions', 'outputs', 'wastages'),
-        pk=wo_id
-    )
-
-    tasks = wo.tasks.select_related('assigned_to', 'stage')
-
-    # Calculate produced, remaining, and progress %
-    produced_qty = wo.outputs.aggregate(total=Sum('quantity_produced'))['total'] or 0
-    remaining_qty = max(wo.quantity_to_produce - produced_qty, 0)
-    progress_percent = round((produced_qty / wo.quantity_to_produce) * 100, 2) if wo.quantity_to_produce > 0 else 0
-
-    # Prepare form sections with dynamic URLs
-    form_sections = [
-        {
-            'name': 'Tasks',
-            'form': ProductionTaskForm(),
-            'icon': 'fa-arrow-up',
-            'btn_text': 'Add Task',
-            'url_name': 'production:task_create',
-        },
-        {
-            'name': 'Consumption',
-            'form': ConsumptionForm(),
-            'icon': 'fa-arrow-up',
-            'btn_text': 'Record Consumption',
-            'url_name': 'production:consumption_create',
-        },
-        {
-            'name': 'Output',
-            'form': OutputForm(),
-            'icon': 'fa-plus',
-            'btn_text': 'Add Output',
-            'url_name': 'production:output_create',
-        },
-        {
-            'name': 'Wastage',
-            'form': WastageForm(),
-            'icon': 'fa-trash',
-            'btn_text': 'Add Wastage',
-            'url_name': 'production:wastage_create',
-        }
-    ]
+    # -------------------------------
+    # QUOTATION ITEMS (READ-ONLY)
+    # -------------------------------
+    quotation_items = order.sales_order.quotation.items.all()
 
     context = {
-        'wo': wo,
+        'order': order,
         'tasks': tasks,
-        'produced_qty': produced_qty,
-        'remaining_qty': remaining_qty,
-        'progress_percent': progress_percent,
-        'form_sections': form_sections,
+        'quotation_items': quotation_items,
     }
 
-    return render(request, 'production/wo_detail.html', context)
+    return render(request, 'production/production_order_detail.html', context)
 
-# WORK ORDER STATUS
 
+# =================================================
+# REQUEST INVENTORY (ADMIN + MANAGER)
+# =================================================
 @login_required
-@role_required(['production', 'admin', 'manager'])
 @require_POST
-def wo_start(request, wo_id):
-    wo = get_object_or_404(WorkOrder, pk=wo_id)
+def request_inventory(request, pk):
+    order = get_object_or_404(ProductionOrder, pk=pk)
+    profile = request.user.userprofile
 
-    if wo.status != 'planned':
-        messages.error(request, "Work order already started.")
-        return redirect('production:wo_detail', wo_id=wo.id)
+    # -------------------------------
+    # ACCESS CONTROL
+    # -------------------------------
+    if profile.role not in (
+        constants.ROLE_ADMIN,
+        constants.ROLE_MANAGER,
+    ):
+        messages.error(request, "You are not allowed to request inventory.")
+        return redirect('production:order_detail', pk=pk)
 
-    if not wo.tasks.exists():
-        messages.error(request, "Cannot start work order without tasks.")
-        return redirect('production:wo_detail', wo_id=wo.id)
+    if profile.role == constants.ROLE_MANAGER and order.manager != request.user:
+        messages.error(request, "You are not allowed to request inventory for this order.")
+        return redirect('production:order_detail', pk=pk)
 
-    wo.status = 'in_progress'
-    wo.start_date = timezone.now().date()
-    wo.save(update_fields=['status', 'start_date'])
+    # -------------------------------
+    # STATE VALIDATION
+    # -------------------------------
+    if order.status != 'draft':
+        messages.warning(request, "Inventory request already sent.")
+        return redirect('production:order_detail', pk=pk)
 
-    messages.success(request, "Work order started.")
-    return redirect('production:wo_detail', wo_id=wo.id)
+    # -------------------------------
+    # STATE TRANSITION
+    # draft → waiting_inventory
+    # -------------------------------
+    order.status = 'waiting_inventory'
+    order.save()
+
+    messages.success(request, "Inventory request sent successfully.")
+
+    return redirect('production:order_detail', pk=pk)
 
 
+# =================================================
+# START PRODUCTION (ADMIN + MANAGER)
+# =================================================
 @login_required
-@role_required(['production', 'admin'])
 @require_POST
-def wo_complete(request, wo_id):
-    wo = get_object_or_404(WorkOrder, pk=wo_id)
+def start_production(request, pk):
+    order = get_object_or_404(ProductionOrder, pk=pk)
+    profile = request.user.userprofile
 
-    wo.auto_complete_if_ready()
+    # -------------------------------
+    # ACCESS CONTROL
+    # -------------------------------
+    if profile.role not in (
+        constants.ROLE_ADMIN,
+        constants.ROLE_MANAGER,
+    ):
+        messages.error(request, "You are not allowed to start production.")
+        return redirect('production:order_detail', pk=pk)
 
-    if wo.status == 'completed':
-        messages.success(request, "Work order completed.")
-    else:
-        messages.error(request, "All tasks must be completed first.")
+    if profile.role == constants.ROLE_MANAGER and order.manager != request.user:
+        messages.error(request, "You are not allowed to start this order.")
+        return redirect('production:order_detail', pk=pk)
 
-    return redirect('production:wo_detail', wo_id=wo.id)
+    # -------------------------------
+    # STATE VALIDATION
+    # -------------------------------
+    if order.status != 'ready':
+        messages.warning(
+            request,
+            f"Production cannot be started. Current status: {order.get_status_display()}"
+        )
+        return redirect('production:order_detail', pk=pk)
+
+    # -------------------------------
+    # STATE TRANSITION
+    # ready → in_progress
+    # -------------------------------
+    order.status = 'in_progress'
+    order.save()
+
+    messages.success(request, "Production started successfully.")
+
+    return redirect('production:order_detail', pk=pk)
 
 
-
-# TASKS
 
 @login_required
-@role_required(['manager', 'admin'])
-def task_create(request, wo_id):
-    wo = get_object_or_404(WorkOrder, pk=wo_id)
+@require_POST
+def complete_production(request, pk):
+    order = get_object_or_404(ProductionOrder, pk=pk)
+    profile = request.user.userprofile
+
+    # Access control
+    if profile.role not in (
+        constants.ROLE_ADMIN,
+        constants.ROLE_MANAGER,
+    ):
+        messages.error(request, "You are not allowed to complete production.")
+        return redirect('production:order_detail', pk=pk)
+
+    # State validation
+    if order.status != 'in_progress':
+        messages.warning(
+            request,
+            f'Cannot complete production. Current status: {order.get_status_display()}'
+        )
+        return redirect('production:order_detail', pk=pk)
+
+    # State transition
+    order.status = 'completed'
+    order.completed_at = timezone.now()
+    order.save()
+
+    messages.success(request, "Production completed successfully.")
+
+    # 🔥 Stay on same page
+    return redirect('production:order_detail', pk=pk)
+
+
+
+
+@login_required
+def add_production_task(request, order_id):
+    order = get_object_or_404(ProductionOrder, id=order_id)
+    profile = request.user.userprofile
+
+    # Access control
+    if profile.role not in (constants.ROLE_ADMIN, constants.ROLE_MANAGER):
+        messages.error(request, "You are not allowed to add tasks.")
+        return redirect('production:order_detail', pk=order_id)
+
+    if profile.role == constants.ROLE_MANAGER and order.manager != request.user:
+        messages.error(request, "You cannot add tasks to this order.")
+        return redirect('production:order_detail', pk=order_id)
+
+    # 🔥 THIS IS THE FIX
+    order_manager_profile = order.manager.userprofile
 
     if request.method == 'POST':
-        form = ProductionTaskForm(request.POST)
+        form = ProductionTaskForm(
+            request.POST,
+            manager_profile=order_manager_profile
+        )
+
         if form.is_valid():
             task = form.save(commit=False)
-            task.work_order = wo
-            task.created_by = request.user
+            task.production_order = order
             task.save()
-            messages.success(request, "Task created.")
-            return redirect('production:wo_detail', wo_id=wo.id)
+
+            messages.success(request, "Production task added successfully.")
+            return redirect('production:order_detail', pk=order_id)
     else:
-        form = ProductionTaskForm()
+        form = ProductionTaskForm(manager_profile=order_manager_profile)
 
-    return render(request, 'production/task_form.html', {'form': form})
-
-
+    return render(
+        request,
+        'production/add_task.html',
+        {
+            'order': order,
+            'form': form,
+        }
+    )
+    
+    
+    
 @login_required
-@role_required(['manager', 'admin'])
 @require_POST
-def task_start(request, task_id):
-    task = get_object_or_404(ProductionTask, pk=task_id)
+def start_task(request, task_id):
+    task = get_object_or_404(ProductionTask, id=task_id)
+    user = request.user
 
-    with transaction.atomic():
-        task.start()
+    # Only assigned employee can start
+    if task.assigned_to != user:
+        messages.error(request, "You are not allowed to start this task.")
+        return redirect('production:order_detail', pk=task.production_order.id)
 
-    messages.success(request, "Task started.")
-    return redirect('production:wo_detail', wo_id=task.work_order.id)
+    if task.status != 'pending':
+        messages.warning(request, "Task cannot be started.")
+        return redirect('production:order_detail', pk=task.production_order.id)
+
+    task.status = 'in_progress'
+    task.started_at = timezone.now()
+    task.save(update_fields=['status', 'started_at'])
+
+    messages.success(request, "Task started successfully.")
+    return redirect('production:order_detail', pk=task.production_order.id)
+
 
 
 @login_required
-@role_required(['manager', 'admin'])
 @require_POST
-def task_complete(request, task_id):
-    task = get_object_or_404(ProductionTask, pk=task_id)
+def complete_task(request, task_id):
+    task = get_object_or_404(ProductionTask, id=task_id)
+    user = request.user
 
-    with transaction.atomic():
-        task.complete()
+    # Only assigned employee can complete
+    if task.assigned_to != user:
+        messages.error(request, "You are not allowed to complete this task.")
+        return redirect('production:order_detail', pk=task.production_order.id)
 
-    messages.success(request, "Task completed.")
-    return redirect('production:wo_detail', wo_id=task.work_order.id)
+    if task.status != 'in_progress':
+        messages.warning(request, "Task must be in progress to complete.")
+        return redirect('production:order_detail', pk=task.production_order.id)
+
+    task.status = 'completed'
+    task.completed_at = timezone.now()
+    task.save(update_fields=['status', 'completed_at'])
+
+    messages.success(request, "Task completed successfully.")
+    return redirect('production:order_detail', pk=task.production_order.id)
+
+
 
 
 @login_required
-@role_required(['manager', 'admin'])
-@require_POST
-def task_delete(request, task_id):
-    task = get_object_or_404(ProductionTask, pk=task_id)
-    wo_id = task.work_order.id
-    task.delete()
-    messages.success(request, "Task deleted.")
-    return redirect('production:wo_detail', wo_id=wo_id)
+def edit_task(request, task_id):
+    task = get_object_or_404(ProductionTask, id=task_id)
 
-
-# RAW MATERIAL CONSUMPTION
-
-@login_required
-@role_required(['production', 'admin'])
-def consumption_create(request, wo_id):
-    wo = get_object_or_404(WorkOrder, pk=wo_id)
+    manager_profile = request.user.userprofile
 
     if request.method == 'POST':
-        form = ConsumptionForm(request.POST)
-        if form.is_valid():
-            cons = form.save(commit=False)
-            cons.work_order = wo
-            cons.created_by = request.user
-
-            with transaction.atomic():
-                batch = InventoryBatch.objects.select_for_update().get(
-                    pk=cons.batch.pk
-                )
-
-                if cons.quantity_used > batch.qty_available:
-                    messages.error(request, "Insufficient stock.")
-                    return redirect('production:wo_detail', wo_id=wo.id)
-
-                cons.save()
-
-                batch.qty_available = F('qty_available') - cons.quantity_used
-                batch.save(update_fields=['qty_available'])
-
-                StockMovement.objects.create(
-                    batch=batch,
-                    from_warehouse=batch.warehouse,
-                    to_warehouse=None,
-                    qty=cons.quantity_used,
-                    movement_type='OUT',
-                    created_by=request.user
-                )
-
-            messages.success(request, "Consumption recorded.")
-            return redirect('production:wo_detail', wo_id=wo.id)
-    else:
-        form = ConsumptionForm()
-
-    return render(request, 'production/consumption_form.html', {'form': form})
-
-
-@login_required
-@role_required(['production', 'admin'])
-@require_POST
-def consumption_delete(request, consumption_id):
-    cons = get_object_or_404(WorkOrderConsumption, pk=consumption_id)
-
-    with transaction.atomic():
-        batch = InventoryBatch.objects.select_for_update().get(
-            pk=cons.batch.pk
+        form = ProductionTaskForm(
+            request.POST,
+            instance=task,
+            manager_profile=manager_profile
         )
 
-        batch.qty_available = F('qty_available') + cons.quantity_used
-        batch.save(update_fields=['qty_available'])
-
-        StockMovement.objects.create(
-            batch=batch,
-            from_warehouse=None,
-            to_warehouse=batch.warehouse,
-            qty=cons.quantity_used,
-            movement_type='IN',
-            created_by=request.user
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Task updated successfully.")
+            return redirect(
+                'production:order_detail',
+                pk=task.production_order.id
+            )
+    else:
+        form = ProductionTaskForm(
+            instance=task,
+            manager_profile=manager_profile
         )
 
-        cons.delete()
-
-    messages.success(request, "Consumption removed and stock restored.")
-    return redirect('production:wo_detail', wo_id=cons.work_order.id)
-
-
-# OUTPUT
-
-@login_required
-@role_required(['production', 'admin'])
-def output_create(request, wo_id):
-    wo = get_object_or_404(WorkOrder, pk=wo_id)
-
-    if wo.status != 'in_progress':
-        messages.error(request, "Work order must be in progress.")
-        return redirect('production:wo_detail', wo_id=wo.id)
-
-    produced_qty = wo.outputs.aggregate(
-        total=Sum('quantity_produced')
-    )['total'] or 0
-
-    remaining_qty = wo.quantity_to_produce - produced_qty
-
-    if request.method == 'POST':
-        form = OutputForm(request.POST)
-        if form.is_valid():
-            out = form.save(commit=False)
-
-            if out.quantity_produced > remaining_qty:
-                messages.error(
-                    request,
-                    f"Only {remaining_qty} units remaining to produce."
-                )
-                return redirect('production:wo_detail', wo_id=wo.id)
-
-            out.work_order = wo
-            out.created_by = request.user
-
-            with transaction.atomic():
-                out.save()
-                FinishedProductBatch.objects.create(
-                    product=out.product,
-                    warehouse=out.warehouse,
-                    qty_available=out.quantity_produced,
-                    produced_date=timezone.now().date(),
-                    work_order=wo
-                )
-
-            messages.success(request, "Production output recorded.")
-            return redirect('production:wo_detail', wo_id=wo.id)
-    else:
-        form = OutputForm()
-
-    return render(request, 'production/output_form.html', {'form': form})
+    return render(
+        request,
+        'production/add_task.html',
+        {
+            'form': form,
+            'task': task
+        }
+    )
 
 
-# WASTAGE
-
-@login_required
-@role_required(['production', 'admin'])
-def wastage_create(request, wo_id):
-    wo = get_object_or_404(WorkOrder, pk=wo_id)
-
-    if request.method == 'POST':
-        form = WastageForm(request.POST)
-        if form.is_valid():
-            wastage = form.save(commit=False)
-            wastage.work_order = wo
-            wastage.created_by = request.user
-            wastage.save()
-            messages.success(request, "Wastage recorded.")
-            return redirect('production:wo_detail', wo_id=wo.id)
-    else:
-        form = WastageForm()
-
-    return render(request, 'production/wastage_form.html', {'form': form})
-
-
-# LIST
-@login_required
-@role_required(['admin', 'manager'])
-def stage_list(request):
-    stages = ProductionStage.objects.order_by('sequence_no')
-    return render(request, 'production/stage_list.html', {'stages': stages})
-
-# CREATE
-@login_required
-@role_required(['admin', 'manager'])
-def stage_create(request):
-    if request.method == 'POST':
-        form = ProductionStageForm(request.POST)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Production stage created.")
-            return redirect('production:stage_list')
-    else:
-        form = ProductionStageForm()
-    return render(request, 'production/stage_form.html', {'form': form, 'title': 'Create Production Stage'})
-
-# UPDATE
-@login_required
-@role_required(['admin', 'manager'])
-def stage_update(request, stage_id):
-    stage = get_object_or_404(ProductionStage, pk=stage_id)
-    if request.method == 'POST':
-        form = ProductionStageForm(request.POST, instance=stage)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Production stage updated.")
-            return redirect('production:stage_list')
-    else:
-        form = ProductionStageForm(instance=stage)
-    return render(request, 'production/stage_form.html', {'form': form, 'title': 'Edit Production Stage'})
-
-# DELETE
-@login_required
-@role_required(['admin'])
-@require_POST
-def stage_delete(request, stage_id):
-    stage = get_object_or_404(ProductionStage, pk=stage_id)
-    if stage.productiontask_set.exists():
-        messages.error(request, "Cannot delete stage linked to tasks.")
-    else:
-        stage.delete()
-        messages.success(request, "Production stage deleted.")
-    return redirect('production:stage_list')
-
-@login_required
-@role_required(['production', 'admin', 'manager'])
-def all_stage_logs(request):
-    """
-    Display all ProductionStageLog entries for all WorkOrders
-    """
-    logs = ProductionStageLog.objects.select_related('work_order', 'stage').order_by('work_order__created_at', 'stage__sequence_no')
-
-    context = {
-        'logs': logs,
-    }
-    return render(request, 'production/all_stage_logs.html', context)

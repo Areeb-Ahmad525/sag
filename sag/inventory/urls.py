@@ -5,7 +5,7 @@ from . import views
 app_name = 'inventory'
 urlpatterns = [
     path('', views.inventory_index, name='inventory_base'),
-
+    path('approve-inventory/<int:order_id>/',views.approve_inventory_request,name='approve_inventory_request'),
     # Suppliers
     path('suppliers/', views.supplier_list, name='supplier_list'),
     path('suppliers/create/', views.add_supplier, name='add_supplier'),

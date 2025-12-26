@@ -1,0 +1,228 @@
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
+{% extends "production/production_base.html" %}
+{% block production_child %}
+
+<style>
+    /* ================= GLOBAL TEXT ================= */
+    body, table, th, td, p, span, div {
+        color: #000;
+    }
+
+    /* ================= BUTTONS ================= */
+    .btn {
+        font-weight: 500;
+        border-radius: 6px;
+        padding: 6px 14px;
+        color: #000 !important;
+    }
+
+    .btn-primary { background-color: #0d6efd; }
+    .btn-warning { background-color: #ffc107; }
+    .btn-success { background-color: #198754; }
+    .btn-info { background-color: #0dcaf0; }
+    .btn-secondary { background-color: #6c757d; }
+
+    .btn:hover:not(:disabled) {
+        opacity: 0.9;
+        transform: translateY(-1px);
+        transition: all 0.15s ease-in-out;
+    }
+
+    .btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    /* ================= TABLE ================= */
+    table th,
+    table td {
+        vertical-align: middle;
+        color: #000;
+    }
+
+    /* ================= BADGES ================= */
+    .badge {
+        font-size: 0.85rem;
+        padding: 6px 10px;
+        color: #000;
+    }
+
+    .table-dark th {
+        color: #fff !important;
+    }
+</style>
+
+<!-- ================= HEADER ================= -->
+<div class="mb-4">
+    <h3 class="fw-bold mb-1">Production Order #{{ order.id }}</h3>
+    <p class="text-muted mb-0">
+        Sales Order #{{ order.sales_order.id }}
+    </p>
+</div>
+
+<!-- ================= ACTION BUTTONS ================= -->
+<div class="mb-4 d-flex gap-2 flex-wrap">
+
+    <form method="post" action="{% url 'production:request_inventory' order.id %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="btn btn-primary"
+                {% if order.status != 'draft' or request.user.userprofile.role not in 'manager admin' %}
+                    disabled
+                {% endif %}>
+            Request Inventory
+        </button>
+    </form>
+
+    <form method="post" action="{% url 'production:start_production' order.id %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="btn btn-warning"
+                {% if order.status != 'ready' or request.user.userprofile.role not in 'manager admin' %}
+                    disabled
+                {% endif %}>
+            Start Production
+        </button>
+    </form>
+
+    <form method="post" action="{% url 'production:complete_production' order.id %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="btn btn-success"
+                {% if order.status != 'in_progress' or request.user.userprofile.role not in 'manager admin' %}
+                    disabled
+                {% endif %}>
+            Complete Production
+        </button>
+    </form>
+
+</div>
+
+<hr>
+
+<!-- ================= ORDER INFO ================= -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <strong>Status</strong>
+        <div class="text-muted">{{ order.get_status_display }}</div>
+    </div>
+
+    <div class="col-md-4">
+        <strong>Manager</strong>
+        <div class="text-muted">{{ order.manager.email }}</div>
+    </div>
+
+    <div class="col-md-4">
+        <strong>Created</strong>
+        <div class="text-muted">{{ order.created_at|date:"d M Y" }}</div>
+    </div>
+</div>
+
+<hr>
+
+<!-- ================= PRODUCTION ITEMS ================= -->
+<h5 class="fw-semibold mb-3">Production Items</h5>
+
+<div class="table-responsive mb-5">
+    <table class="table table-bordered table-sm align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>#</th>
+                <th>Product</th>
+                <th>Description</th>
+                <th class="text-center">Quantity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in quotation_items %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td class="fw-semibold">{{ item.product_name }}</td>
+                <td>{{ item.description|default:"—" }}</td>
+                <td class="text-center fw-bold">{{ item.quantity }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    No items found
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<hr>
+
+<!-- ================= TASKS ================= -->
+<h5 class="fw-semibold mb-3">Production Tasks</h5>
+
+<div class="mb-3">
+    <a href="{% url 'production:add_task' order.id %}"
+       class="btn btn-info">
+        + Add Task
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-sm align-middle">
+        <thead class="table-dark">
+            <tr>
+                <th>Task</th>
+                <th>Assigned To</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for task in tasks %}
+            <tr>
+                <td class="fw-semibold">{{ task.name }}</td>
+                <td>{{ task.assigned_to.email|default:"—" }}</td>
+
+                <td>
+                    <span class="badge
+                        {% if task.status == 'completed' %}bg-success
+                        {% elif task.status == 'in_progress' %}bg-warning
+                        {% else %}bg-secondary{% endif %}">
+                        {{ task.get_status_display }}
+                    </span>
+                </td>
+
+                <td class="d-flex gap-1 flex-wrap">
+
+                    <form method="post" action="{% url 'production:start_task' task.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-primary"
+                                {% if request.user != task.assigned_to or task.status != 'pending' %}
+                                    disabled
+                                {% endif %}>
+                            Start
+                        </button>
+                    </form>
+
+                    <form method="post" action="{% url 'production:complete_task' task.id %}">
+                        {% csrf_token %}
+                        <button class="btn btn-sm btn-success"
+                                {% if request.user != task.assigned_to or task.status != 'in_progress' %}
+                                    disabled
+                                {% endif %}>
+                            Complete
+                        </button>
+                    </form>
+
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="4" class="text-center text-muted">
+                    No tasks assigned
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
